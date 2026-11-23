@@ -1,0 +1,9 @@
+# 자취생 월세·전세 실부담 계산기 — robots.txt
+
+User-agent: *
+Allow: /
+
+# 관리자/임시 파일 (사용 시)
+Disallow: /assets/draft/
+
+Sitemap: https://starha2015-svg.github.io/sitemap.xml
