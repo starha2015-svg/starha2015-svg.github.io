@@ -899,3 +899,113 @@ footer p { word-break: keep-all; }
   * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
   html { scroll-behavior: auto; }
 }
+
+/* ---------------- 도구 전환 내비게이션 ---------------- */
+
+.toolnav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 18px;
+}
+.toolnav .tn-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--muted);
+  margin-right: 2px;
+}
+.toolnav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: #41536A;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
+.toolnav a:hover { border-color: #BFE9DF; color: var(--mint-d); }
+.toolnav a[aria-current="page"] { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+.toolnav.on-dark { margin-top: 22px; }
+.toolnav.on-dark .tn-label { color: #8FB0CC; }
+.toolnav.on-dark a {
+  background: rgba(255, 255, 255, .07);
+  border-color: rgba(255, 255, 255, .16);
+  color: #CFE2F2;
+}
+.toolnav.on-dark a:hover { background: rgba(255, 255, 255, .13); border-color: rgba(255, 255, 255, .3); color: #fff; }
+.toolnav.on-dark a[aria-current="page"] { background: var(--mint); border-color: var(--mint); color: #04312A; }
+
+.toolnav.in-footer { margin: 0 0 12px; }
+
+/* ---------------- 주휴수당 판정 박스 ---------------- */
+
+.judge {
+  margin-top: 12px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #F5F8FB;
+  color: #4C5C70;
+  font-size: 12.5px;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+.judge .j-title {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--navy);
+}
+.judge.ok { background: var(--mint-soft); border-color: #CBEFE5; color: #2F6E62; }
+.judge.ok .j-title { color: #0A6A58; }
+.judge.warn { background: var(--warn-bg); border-color: #FDE3C7; color: #7A4A12; }
+.judge.warn .j-title { color: #8A3F06; }
+.judge.off { background: #F5F8FB; border-color: var(--line); color: #4C5C70; }
+
+/* ---------------- 계산식 박스 ---------------- */
+
+.formula-box {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #CBEFE5;
+  background: var(--mint-soft);
+}
+.formula-box h3 {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0A6A58;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.formula-box h3::before { content: "🧾"; font-size: 13px; }
+.fx-line {
+  margin-top: 8px;
+  padding: 10px 11px;
+  border-radius: 10px;
+  border: 1px solid #D6F1E9;
+  background: #fff;
+  color: #06453A;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+  word-break: keep-all;
+  font-variant-numeric: tabular-nums;
+}
+.fx-sub {
+  margin-top: 8px;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: #4E8279;
+  word-break: keep-all;
+}
