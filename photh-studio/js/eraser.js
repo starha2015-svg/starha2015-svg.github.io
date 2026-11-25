@@ -316,11 +316,11 @@ export function initEraser(hooks) {
     const N = mw * mh;
     // 강한 확신(>190) 픽셀로 덩어리를 잡고, 약한 확신(>110)은 테두리 확장에만 쓴다
     const on = new Uint8Array(N);
-    const soft = new Uint8Array(N);
+    const softPx = new Uint8Array(N);
     for (let i = 0; i < N; i++) {
       const v = data[i * 4];
       on[i] = v > 190 ? 1 : 0;
-      soft[i] = v > 110 ? 1 : 0;
+      softPx[i] = v > 110 ? 1 : 0;
     }
 
     // 연결 요소 라벨링
@@ -417,7 +417,7 @@ export function initEraser(hooks) {
       for (let y = 1; y < mh - 1; y++) {
         for (let x = 1; x < mw - 1; x++) {
           const i = y * mw + x;
-          if (keep[i] || !soft[i]) continue;
+          if (keep[i] || !softPx[i]) continue;
           if (keep[i - 1] || keep[i + 1] || keep[i - mw] || keep[i + mw]) keep[i] = 1;
         }
       }
