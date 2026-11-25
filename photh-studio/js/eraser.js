@@ -399,13 +399,17 @@ export function initEraser(hooks) {
         cp.area > Math.max(N * 0.0025, mainComp.area * 0.05)
       );
       if (!targets.length) {
-        const dbg = `DBG comps=${comps.length} areas=${comps.map(cp => cp.area).join('/')} N=${N} main=${mainId} faces=${faces.length}`;
-        return { note: '중심 인물 말고는 지울 만한 다른 사람을 찾지 못했습니다. 브러시로 직접 칠해 주세요.', dbg };
+        return { note: '중심 인물 말고는 지울 만한 다른 사람을 찾지 못했습니다. 브러시로 직접 칠해 주세요.' };
       }
       const tset = new Set(targets.map(t => t.id));
       for (let i = 0; i < N; i++) if (label[i] >= 0 && tset.has(label[i])) keep[i] = 1;
       peopleCount = targets.length;
     }
+
+    // 마스크 캔버스 (흰색 + 알파)
+    const out = makeCanvas(mw, mh);
+    const octx = out.getContext('2d');
+    const img = octx.createImageData(mw, mh);
 
     // 1px 팽창
     for (let y = 0; y < mh; y++) {
@@ -441,7 +445,7 @@ export function initEraser(hooks) {
     if (!item || busy) return;
     ensureErase(item);
     const res = buildAutoMask(item);
-    if (!res.canvas) { toast(res.dbg ? res.note + ' · ' + res.dbg : res.note); if (els.autoInfo) els.autoInfo.textContent = (res.dbg ? res.note + ' · ' + res.dbg : res.note); return; }
+    if (!res.canvas) { toast(res.note); if (els.autoInfo) els.autoInfo.textContent = res.note; return; }
     const e = item.erase;
     e.auto = res.canvas;
     e.autoNote = res.note;
