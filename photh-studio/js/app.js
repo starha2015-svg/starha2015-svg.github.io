@@ -1,11 +1,16 @@
-import { PRESETS, PRESET_BY_ID, blendLook } from './presets.js?v=3';
-import { Renderer } from './gl.js?v=3';
-import { buildBokehCanvases } from './bokeh.js?v=3';
-import { imageStats, estimateAdjust, fmtEV, fmtSigned } from './color.js?v=3';
-import { buildFallbackMasks, analyzePortrait } from './ai.js?v=3';
+import { PRESETS, PRESET_BY_ID, blendLook } from './presets.js?v=4';
+import { Renderer } from './gl.js?v=4';
+import { buildBokehCanvases } from './bokeh.js?v=4';
+import { imageStats, estimateAdjust, fmtEV, fmtSigned } from './color.js?v=4';
+import { buildFallbackMasks, analyzePortrait } from './ai.js?v=4';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+/* 진단용: 예상치 못한 오류를 조용히 모아 둔다 (화면에는 나오지 않음) */
+window.__phothErrors = window.__phothErrors || [];
+window.addEventListener('error', e => window.__phothErrors.push(String(e.message || e)));
+window.addEventListener('unhandledrejection', e => window.__phothErrors.push('promise: ' + String((e.reason && e.reason.message) || e.reason)));
 
 const SAMPLE_FILES = [
   { url: './assets/samples/sample-01.jpg', name: 'portrait_studio.jpg' },
