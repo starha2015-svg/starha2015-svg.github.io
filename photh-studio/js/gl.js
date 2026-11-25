@@ -342,6 +342,7 @@ uniform vec3 uLightDir;
 uniform vec3 uSunColor;
 uniform vec3 uGlowColor;
 uniform vec2 uSunUV;
+uniform vec2 uPersonCenter;
 
 float lumc(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }
 float sat(float x){ return clamp(x, 0.0, 1.0); }
@@ -369,20 +370,26 @@ void main(){
 
   vec3 L = normalize(uLightDir);
   float ndl = dot(N, L);
-  float lit = smoothstep(-0.45, 0.85, ndl);
-  float back = sat(-ndl);
-  float w = mix(0.42, 1.0, person);
+  // 얼굴 돔의 미세 음영 + 인물 중심 기준의 큰 방향성(스튜디오 조명처럼)
+  vec2 rel = (vUv - uPersonCenter) * vec2(uAspect, 1.0);
+  float rl = length(rel);
+  vec2 lxy = normalize(vec2(L.x, L.y) + vec2(1e-5, 1e-5));
+  float side = rl > 1e-4 ? dot(rel / rl, lxy) * smoothstep(0.0, 0.30, rl) : 0.0;
+  float shade = clamp(0.52 * ndl + 0.55 * side, -1.0, 1.0);
+  float lit = smoothstep(-0.55, 0.80, shade);
+  float back = clamp(-shade, 0.0, 1.0);
+  float w = mix(0.40, 1.0, person);
   float s = clamp(uStrength, 0.0, 1.0) * w;
   float base = lumc(c);
   float headroom = 1.0 - smoothstep(0.55, 1.0, base);
 
-  // 빛을 받는 쪽: 따뜻하고 밝게 (하이라이트 롤오프 여유분 안에서)
-  vec3 lit3 = c * uSunColor * (1.0 + 0.20 * headroom) + uSunColor * 0.035 * headroom;
-  c = mix(c, lit3, s * lit * 0.78);
+  // 빛을 받는 쪽: 따뜻하고 밝게 (밝은 부분은 덜 더해 타지 않게)
+  vec3 lit3 = c * uSunColor * (1.0 + 0.16 * headroom) + uSunColor * 0.030 * headroom;
+  c = mix(c, lit3, clamp(s * lit * 0.70, 0.0, 1.0));
 
   // 반대쪽: 채도가 살짝 빠지는 부드러운 그림자
-  float shade = back * back * (0.60 + 0.40 * (1.0 - person)) * (0.55 + 0.45 * (1.0 - base));
-  c *= 1.0 - s * 0.28 * shade;
+  float sh = back * back * (0.62 + 0.38 * (1.0 - person)) * (0.55 + 0.45 * (1.0 - base));
+  c *= 1.0 - s * 0.30 * sh;
 
   // 인물 경계 림라이트 (머리카락·어깨)
   vec2 o2 = vec2(st * 1.7, st * 1.7);
@@ -396,8 +403,8 @@ void main(){
   vec2 l2 = normalize(vec2(L.x, L.y) + vec2(1e-5, 1e-5));
   float toward = sat(dot(outward, l2));
   float backAmt = 1.0 - sat(L.z);
-  float rim = edge * toward * clamp(uStrength, 0.0, 1.0) * (0.16 + 0.52 * backAmt);
-  c += uSunColor * rim * mix(0.85, 1.25, backAmt);
+  float rim = edge * toward * clamp(uStrength, 0.0, 1.0) * (0.12 + 0.42 * backAmt);
+  c += uSunColor * rim * mix(0.85, 1.20, backAmt);
 
   // 광원 위치에서 퍼지는 햇살 글로우 / 베일링 플레어
   vec2 dp = (vUv - uSunUV) * vec2(uAspect, 1.0);
@@ -409,8 +416,10 @@ void main(){
   float sunLum = smoothstep(0.30, 0.92, base);
   c += uGlowColor * gAmt * (core * 0.50 * (0.35 + 0.65 * sunLum) + halo * 0.20 + veil * 0.05);
 
-  // 소프트 하이라이트 롤오프 — 타지 않고 스며들게
-  c = c / (1.0 + max(c - 0.86, vec3(0.0)) * 1.9);
+  // 소프트 하이라이트 롤오프 — 밝기만 압축해 색이 파랗게 틀어지지 않게
+  float cl = lumc(c);
+  float cl2 = cl / (1.0 + max(cl - 0.88, 0.0) * 2.2);
+  c *= (cl > 1e-4) ? (cl2 / cl) : 1.0;
 
   outColor = vec4(clamp(c, 0.0, 1.0), 1.0);
 }
@@ -935,6 +944,7 @@ export class Renderer {
       gl.uniform3f(SU.uSunColor, u.sunColor[0], u.sunColor[1], u.sunColor[2]);
       gl.uniform3f(SU.uGlowColor, u.sunGlowColor[0], u.sunGlowColor[1], u.sunGlowColor[2]);
       gl.uniform2f(SU.uSunUV, u.sunUV[0], u.sunUV[1]);
+      gl.uniform2f(SU.uPersonCenter, u.sunCenter[0], u.sunCenter[1]);
       this._draw();
       srcTex = t.a.tex;
     }

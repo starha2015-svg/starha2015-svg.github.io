@@ -406,6 +406,7 @@ function uniformsFor(item, override = {}) {
     sunColor,
     sunGlowColor,
     sunUV: [0.5 + Math.max(-1, Math.min(1, sun.x)) * 0.47, 0.5 + Math.max(-1, Math.min(1, sun.y)) * 0.47],
+    sunCenter: (item.masks && item.masks.center) || [0.5, 0.5],
     rot: str.rot,
     zoom: str.zoom,
     warp: (sh.slim || sh.eyes || sh.nose || sh.smile) ? 1 : 0,
@@ -628,7 +629,7 @@ async function ensureAnalysis(item) {
       skin: res.skin, person: res.person, face: res.face, hair: res.hair,
       eyes: res.eyes, lips: res.lips, teeth: res.teeth, cheek: res.cheek,
       underEye: res.underEye, catchlight: res.catchlight,
-      shape: res.shape, faceAngle: res.faceAngle,
+      shape: res.shape, faceAngle: res.faceAngle, center: res.center,
       mode: 'ai', coverage: res.coverage, faces: res.faces, size: res.size
     };
     item.warpSig = null;

@@ -203,6 +203,17 @@ async function analyzePortraitInner(source, w, h) {
   }
   const coverage = skinCount / (mw * mh);
 
+  // 인물 무게 중심 (햇빛 방향 기준점)
+  let sx = 0, sy = 0, sw = 0;
+  for (let y = 0; y < mh; y++) {
+    for (let x = 0; x < mw; x++) {
+      const v = personArr[y * mw + x];
+      if (v < 0.35) continue;
+      sx += x * v; sy += y * v; sw += v;
+    }
+  }
+  const center = sw > 0.5 ? [sx / sw / mw, sy / sw / mh] : [0.5, 0.5];
+
   res.close?.();
 
   let skinCanvas = maskFromFloat(skinArr, mw, mh, 1.6);
@@ -246,6 +257,7 @@ async function analyzePortraitInner(source, w, h) {
     underEye: features ? features.underEye : null,
     catchlight: features ? features.catchlight : null,
     shape: features ? features.shape : null,
+    center,
     faceAngle,
     mode: 'ai',
     coverage,
