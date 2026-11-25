@@ -224,6 +224,7 @@ async function analyzePortraitInner(source, w, h) {
   let faceAngle = null;
   let faceCanvas = null;
   let features = null;
+  let faceBoxes = [];
   try {
     const lm = await getFaceLandmarker();
     const fres = lm.detect(input);
@@ -232,6 +233,14 @@ async function analyzePortraitInner(source, w, h) {
       skinCanvas = protectFeatures(skinCanvas, fres.faceLandmarks, iw, ih, mw, mh);
       faceCanvas = buildFaceDepth(fres.faceLandmarks, iw, ih, mw, mh);
       features = buildFeatureMasks(fres.faceLandmarks, mw, mh);
+      faceBoxes = fres.faceLandmarks.map(lms => {
+        let x0 = 1, y0 = 1, x1 = 0, y1 = 0;
+        for (const p of lms) {
+          if (p.x < x0) x0 = p.x; if (p.x > x1) x1 = p.x;
+          if (p.y < y0) y0 = p.y; if (p.y > y1) y1 = p.y;
+        }
+        return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0 };
+      });
       const a = fres.faceLandmarks[0][33];
       const b = fres.faceLandmarks[0][263];
       if (a && b) {
@@ -262,6 +271,7 @@ async function analyzePortraitInner(source, w, h) {
     mode: 'ai',
     coverage,
     faces,
+    faceBoxes,
     size: [mw, mh]
   };
 }
@@ -400,14 +410,16 @@ function buildFaceDepth(landmarksList, iw, ih, mw, mh) {
     any = true;
     const cx = (lc[0] + rc[0]) / 2;
     const cy = (top[1] + chin[1]) / 2;
-    const rx = Math.max(4, faceW * 0.66);
-    const ry = Math.max(4, Math.abs(chin[1] - top[1]) * 0.62);
+    const rx = Math.max(4, faceW * 0.74);
+    const ry = Math.max(4, Math.abs(chin[1] - top[1]) * 0.72);
     for (let y = Math.max(0, Math.floor(cy - ry)); y < Math.min(mh, Math.ceil(cy + ry)); y++) {
       for (let x = Math.max(0, Math.floor(cx - rx)); x < Math.min(mw, Math.ceil(cx + rx)); x++) {
         const dx = (x - cx) / rx, dy = (y - cy) / ry;
         const d2 = dx * dx + dy * dy;
         if (d2 >= 1) continue;
-        const v = Math.sqrt(1 - d2) * 0.82;
+        // 테두리에서 기울기가 0이 되는 부드러운 돔 (역광에서 마스크 경계가 보이지 않게)
+        const t = 1 - d2;
+        const v = t * t * (3 - 2 * t) * 0.92;
         const i = y * mw + x;
         if (v > arr[i]) arr[i] = v;
       }
@@ -425,7 +437,7 @@ function buildFaceDepth(landmarksList, iw, ih, mw, mh) {
     }
   }
   if (!any) return null;
-  return maskFromFloat(arr, mw, mh, 1.4);
+  return maskFromFloat(arr, mw, mh, 3.6);
 }
 
 function protectFeatures(skinCanvas, landmarksList, iw, ih, mw, mh) {

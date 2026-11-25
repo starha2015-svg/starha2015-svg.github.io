@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PHOTH Studio — 사진 색감 보정·인물 리터칭 (설치 없이 브라우저에서)</title>
-<meta name="description" content="사진 한 장 올리면 바로 쓰는 웹 사진 보정 스튜디오. 프리셋 14종, 세부 보정과 HSL, 피부·눈·메이크업 리터칭, 얼굴형 보정, 가상 햇빛, 자동 수평, 레퍼런스 색감, 원본 해상도 저장까지. 사진은 서버로 전송되지 않고 기기 브라우저 안에서만 처리됩니다.">
+<meta name="description" content="사진 한 장 올리면 바로 쓰는 웹 사진 보정 스튜디오. 프리셋 14종, 세부 보정과 HSL, 피부·눈·메이크업 리터칭, 얼굴형 보정, 가상 햇빛, 자동 수평, 레퍼런스 색감, 원본 해상도 저장까지. 보정·리터칭은 기기 브라우저 안에서만 처리되고, 지우개 기능을 쓸 때만 사진이 AI 서버(fal.ai)로 전송됩니다.">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="author" content="PHOTH Studio">
 <meta name="theme-color" content="#0d0f14">
@@ -14,7 +14,7 @@
 <meta property="og:site_name" content="PHOTH Studio">
 <meta property="og:locale" content="ko_KR">
 <meta property="og:title" content="PHOTH Studio — 사진 색감 보정·인물 리터칭">
-<meta property="og:description" content="프리셋·HSL·피부 리터칭·얼굴형·가상 햇빛·자동 수평·레퍼런스 색감. 설치 없이 브라우저에서, 사진은 기기 밖으로 나가지 않습니다.">
+<meta property="og:description" content="프리셋·HSL·피부 리터칭·얼굴형·가상 햇빛·자동 수평·레퍼런스 색감. 설치 없이 브라우저에서. 보정은 기기 안에서, AI 지우개만 fal.ai를 거칩니다.">
 <meta property="og:url" content="https://starha2015-svg.github.io/photh-studio/">
 <meta property="og:image" content="https://starha2015-svg.github.io/photh-studio/assets/og.jpg">
 <meta property="og:image:width" content="1200">
@@ -25,7 +25,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="./css/style.css?v=25">
+<link rel="stylesheet" href="./css/style.css?v=26">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
 <script type="application/ld+json">
 {
@@ -70,7 +70,7 @@
       </label>
     </form>
 
-    <p class="lock-note">사진은 서버로 전송되지 않고, 이 기기 브라우저 안에서만 처리됩니다.</p>
+    <p class="lock-note">보정·리터칭은 이 기기 브라우저 안에서만 처리됩니다. AI 지우개를 쓸 때만 사진이 fal.ai로 전송됩니다.</p>
   </div>
 </div>
 
@@ -156,6 +156,7 @@
           <div class="compare-line" id="compareLine" hidden>
             <span class="compare-grip" aria-hidden="true"></span>
           </div>
+          <canvas class="erase-layer" id="eraseLayer" hidden aria-label="지우개 브러시 영역"></canvas>
           <span class="compare-tag compare-tag-before" aria-hidden="true">BEFORE</span>
           <span class="compare-tag compare-tag-after" aria-hidden="true">AFTER</span>
         </div>
@@ -171,7 +172,7 @@
           <div class="empty-actions">
             <button class="btn btn-primary" id="btnPickEmpty" type="button">사진 선택</button>
           </div>
-          <p class="empty-note">사진은 서버로 전송되지 않고, 이 기기 브라우저 안에서만 처리됩니다.</p>
+          <p class="empty-note">보정·리터칭은 이 기기 브라우저 안에서만 처리됩니다. AI 지우개를 쓸 때만 사진이 fal.ai로 전송됩니다.</p>
         </div>
       </div>
 
@@ -189,6 +190,7 @@
         <div class="tabs" role="tablist" aria-label="보정 도구">
           <button class="tab is-on" data-tab="light" role="tab" aria-selected="true" type="button">보정</button>
           <button class="tab" data-tab="retouch" role="tab" aria-selected="false" type="button">리터칭</button>
+          <button class="tab" data-tab="erase" role="tab" aria-selected="false" type="button">지우개</button>
           <button class="tab" data-tab="scene" role="tab" aria-selected="false" type="button">배경·조명</button>
           <button class="tab" data-tab="ref" role="tab" aria-selected="false" type="button">레퍼런스</button>
           <button class="tab" data-tab="export" role="tab" aria-selected="false" type="button">저장</button>
@@ -303,6 +305,53 @@
               <span>마스크 미리보기</span>
             </label>
             <p class="hint tiny">피부·인물 영역이 어떻게 잡혔는지 확인합니다. 저장에는 포함되지 않습니다.</p>
+          </div>
+        </section>
+
+        <!-- ══ 지우개 ══ -->
+        <section class="tab-panel" data-panel="erase">
+          <div class="group">
+            <div class="group-head"><h3>사람 · 사물 지우기</h3></div>
+            <p class="hint">지울 부분을 사진 위에 브러시로 칠한 뒤 <b>지우기 실행</b>을 누르면 AI가 주변 배경으로 자연스럽게 채웁니다.</p>
+            <div class="erase-badge">
+              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 3.2 20 11.2a3 3 0 0 1 0 4.3l-4.6 4.6a3 3 0 0 1-4.3 0L3.2 12.2a3 3 0 0 1 0-4.3l4.5-4.6a3 3 0 0 1 4.3 0Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m6.4 9 8.6 8.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <span>이 기능만 사진을 AI 서버(fal.ai)로 보냅니다. 결과는 원본 해상도에 합성됩니다.</span>
+            </div>
+
+            <div class="slider" data-erase="brush">
+              <div class="slider-top"><label>브러시 크기</label><output id="eraseBrushOut">36</output></div>
+              <input type="range" id="eraseBrush" min="8" max="160" step="2" value="36" aria-label="브러시 크기">
+            </div>
+
+            <div class="erase-actions">
+              <button class="btn btn-wide btn-primary" id="btnEraseRun" type="button" disabled>지우기 실행</button>
+              <div class="erase-sub">
+                <button class="btn btn-soft" id="btnEraseUndo" type="button">되돌리기</button>
+                <button class="btn btn-soft" id="btnEraseClear" type="button">칠 지우기</button>
+              </div>
+            </div>
+
+            <div class="erase-spinner" id="eraseSpinner" hidden><span class="dot"></span><span>AI가 지우는 중…</span></div>
+            <p class="erase-status" id="eraseStatus" aria-live="polite"></p>
+          </div>
+
+          <div class="group">
+            <div class="group-head"><h3>배경 사람 자동 감지</h3></div>
+            <p class="hint">가운데 인물은 그대로 두고, 뒤에 있는 다른 사람들을 자동으로 찾아 마스크로 잡습니다.</p>
+            <button class="btn btn-wide btn-soft" id="btnEraseAuto" type="button">배경 사람 자동 선택</button>
+            <button class="btn btn-wide btn-soft" id="btnEraseAutoClear" type="button">자동 선택 취소</button>
+            <p class="hint tiny" id="eraseAutoInfo"></p>
+          </div>
+
+          <div class="group">
+            <div class="group-head"><h3>합성 · 결과</h3></div>
+            <div class="slider" data-erase="feather">
+              <div class="slider-top"><label>경계 부드럽게</label><output id="eraseFeatherOut">8</output></div>
+              <input type="range" id="eraseFeather" min="0" max="40" step="1" value="8" aria-label="경계 부드럽게">
+            </div>
+            <button class="btn btn-wide btn-soft" id="btnEraseRestore" type="button" disabled>지우기 이전 상태로</button>
+            <p class="hint tiny" id="eraseSize">—</p>
+            <p class="hint tiny">지우면 사진 자체가 바뀌고, 인물 인식·배경 흐림도 새 사진으로 다시 계산됩니다. 저장은 [저장] 탭에서 원본 해상도로 하세요.</p>
           </div>
         </section>
 
@@ -430,7 +479,7 @@
           </div>
           <div class="group">
             <div class="group-head"><h3>개인정보</h3></div>
-            <p class="hint tiny">사진은 서버로 전송되지 않고 이 기기 브라우저 안에서만 처리됩니다. 저장 파일에는 워터마크나 별도 표시가 들어가지 않습니다. 페이지를 새로고침하면 작업 내용은 사라지니, 보정한 사진은 저장해 두세요.</p>
+            <p class="hint tiny">보정·리터칭은 이 기기 브라우저 안에서만 처리됩니다(AI 지우개는 fal.ai 전송). 저장 파일에는 워터마크나 별도 표시가 들어가지 않습니다. 페이지를 새로고침하면 작업 내용은 사라지니, 보정한 사진은 저장해 두세요.</p>
           </div>
         </section>
 
@@ -442,6 +491,7 @@
     <button class="mnav is-on" data-mnav="presets" type="button"><span>프리셋</span></button>
     <button class="mnav" data-mnav="light" type="button"><span>보정</span></button>
     <button class="mnav" data-mnav="retouch" type="button"><span>리터칭</span></button>
+    <button class="mnav" data-mnav="erase" type="button"><span>지우개</span></button>
     <button class="mnav" data-mnav="scene" type="button"><span>배경·조명</span></button>
     <button class="mnav" data-mnav="ref" type="button"><span>레퍼런스</span></button>
   </nav>
@@ -452,6 +502,6 @@
 </div>
 
 <noscript><p style="padding:24px;color:#e7ebf3">PHOTH Studio는 자바스크립트가 필요합니다. 브라우저 설정에서 자바스크립트를 켜 주세요.</p></noscript>
-<script type="module" src="./js/lock.js?v=25"></script>
+<script type="module" src="./js/lock.js?v=26"></script>
 </body>
 </html>

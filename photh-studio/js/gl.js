@@ -358,16 +358,26 @@ void main(){
   const float st = 0.0028;
   vec2 ox = vec2(st, 0.0), oy = vec2(0.0, st);
 
-  // 인물 가중치를 더 넓게 펴서 마스크 경계에 색 테두리가 생기지 않게 한다
-  float pBlur = 0.25 * (texture(uPerson, vUv + ox).r + texture(uPerson, vUv - ox).r
-                      + texture(uPerson, vUv + oy).r + texture(uPerson, vUv - oy).r);
-  person = clamp(mix(person, pBlur, 0.75), 0.0, 1.0);
+  // 인물 가중치를 더 넓게(대각선 포함) 펴서 마스크 경계에 색·명암 테두리가 생기지 않게 한다
+  float pBlur = 0.125 * (texture(uPerson, vUv + ox).r + texture(uPerson, vUv - ox).r
+                       + texture(uPerson, vUv + oy).r + texture(uPerson, vUv - oy).r
+                       + texture(uPerson, vUv + ox * 2.2 + oy * 0.8).r + texture(uPerson, vUv - ox * 2.2 - oy * 0.8).r
+                       + texture(uPerson, vUv - ox * 2.2 + oy * 0.8).r + texture(uPerson, vUv + ox * 2.2 - oy * 0.8).r);
+  person = clamp(mix(person, pBlur, 0.88), 0.0, 1.0);
+  person = smoothstep(0.0, 1.0, person);
 
-  float hC = lumc(c) * 0.50 + face * 0.95 + person * 0.06;
-  float hL = lumc(texture(uTex, vUv - ox).rgb) * 0.50 + texture(uFace, vUv - ox).r * 0.95 + texture(uPerson, vUv - ox).r * 0.06;
-  float hR = lumc(texture(uTex, vUv + ox).rgb) * 0.50 + texture(uFace, vUv + ox).r * 0.95 + texture(uPerson, vUv + ox).r * 0.06;
-  float hD = lumc(texture(uTex, vUv + oy).rgb) * 0.50 + texture(uFace, vUv + oy).r * 0.95 + texture(uPerson, vUv + oy).r * 0.06;
-  float hU = lumc(texture(uTex, vUv - oy).rgb) * 0.50 + texture(uFace, vUv - oy).r * 0.95 + texture(uPerson, vUv - oy).r * 0.06;
+  // 얼굴 높이장도 넓게 펴서 타원 마스크 테두리가 도드라지지 않게 (역광에서 특히)
+  vec2 fx = vec2(0.0080, 0.0), fy = vec2(0.0, 0.0080);
+  float fBlur = 0.2 * (face
+                     + texture(uFace, vUv + fx).r + texture(uFace, vUv - fx).r
+                     + texture(uFace, vUv + fy).r + texture(uFace, vUv - fy).r);
+  face = clamp(mix(face, fBlur, 0.72), 0.0, 1.0);
+
+  float hC = lumc(c) * 0.52 + face * 0.88 + person * 0.05;
+  float hL = lumc(texture(uTex, vUv - ox).rgb) * 0.52 + texture(uFace, vUv - ox).r * 0.88 + texture(uPerson, vUv - ox).r * 0.05;
+  float hR = lumc(texture(uTex, vUv + ox).rgb) * 0.52 + texture(uFace, vUv + ox).r * 0.88 + texture(uPerson, vUv + ox).r * 0.05;
+  float hD = lumc(texture(uTex, vUv + oy).rgb) * 0.52 + texture(uFace, vUv + oy).r * 0.88 + texture(uPerson, vUv + oy).r * 0.05;
+  float hU = lumc(texture(uTex, vUv - oy).rgb) * 0.52 + texture(uFace, vUv - oy).r * 0.88 + texture(uPerson, vUv - oy).r * 0.05;
 
   // 높이장의 기울기 → 2.5D 노멀 (얼굴 볼록면이 주도)
   vec2 g = clamp(vec2(hR - hL, hD - hU) * 14.0, -1.4, 1.4);
@@ -403,7 +413,7 @@ void main(){
   float pD = texture(uPerson, vUv + vec2(0.0, o2.y)).r;
   float pU = texture(uPerson, vUv - vec2(0.0, o2.y)).r;
   vec2 pg = vec2(pR - pL, pD - pU);
-  float edge = smoothstep(0.018, 0.20, length(pg)) * smoothstep(0.05, 0.55, person);
+  float edge = smoothstep(0.022, 0.30, length(pg)) * smoothstep(0.04, 0.72, person);
   vec2 outward = -normalize(pg + vec2(1e-5, 1e-5));
   vec2 l2 = normalize(vec2(L.x, L.y) + vec2(1e-5, 1e-5));
   float toward = sat(dot(outward, l2));

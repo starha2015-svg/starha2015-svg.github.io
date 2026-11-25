@@ -1,9 +1,10 @@
-import { PRESETS, PRESET_BY_ID, blendLook } from './presets.js?v=25';
-import { Renderer } from './gl.js?v=25';
-import { buildBokehCanvases } from './bokeh.js?v=25';
-import { imageStats, estimateAdjust, fmtEV, fmtSigned } from './color.js?v=25';
-import { buildFallbackMasks, analyzePortrait } from './ai.js?v=25';
-import { estimateTilt } from './level.js?v=25';
+import { PRESETS, PRESET_BY_ID, blendLook } from './presets.js?v=26';
+import { Renderer } from './gl.js?v=26';
+import { buildBokehCanvases } from './bokeh.js?v=26';
+import { imageStats, estimateAdjust, fmtEV, fmtSigned } from './color.js?v=26';
+import { buildFallbackMasks, analyzePortrait } from './ai.js?v=26';
+import { estimateTilt } from './level.js?v=26';
+import { initEraser } from './eraser.js?v=26';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -133,6 +134,7 @@ const isActive = it => it && it.id === state.activeId;
 
 /* ── 렌더러 ──────────────────────────────────────────── */
 let renderer = null;
+let eraser = null;
 try {
   renderer = new Renderer(els.afterCanvas);
 } catch (e) {
@@ -601,6 +603,7 @@ function selectItem(id) {
   syncUI();
   updateMeta();
   draw();
+  if (eraser) eraser.refresh();
   updateAiStatus();
   ensureAnalysis(item);
   refreshPresetThumbs();
@@ -630,7 +633,7 @@ async function ensureAnalysis(item) {
       eyes: res.eyes, lips: res.lips, teeth: res.teeth, cheek: res.cheek,
       underEye: res.underEye, catchlight: res.catchlight,
       shape: res.shape, faceAngle: res.faceAngle, center: res.center,
-      mode: 'ai', coverage: res.coverage, faces: res.faces, size: res.size
+      mode: 'ai', coverage: res.coverage, faces: res.faces, faceBoxes: res.faceBoxes || [], size: res.size
     };
     item.warpSig = null;
     try {
@@ -644,6 +647,7 @@ async function ensureAnalysis(item) {
       if (item.settings.retouch.smooth > 0 || item.settings.retouch.brighten > 0 || item.settings.retouch.bokeh > 0 || item.settings.retouch.bokehLight > 0) scheduleRender();
       updateAiStatus();
     }
+    if (isActive(item) && eraser) eraser.refresh();
   } catch (e) {
     console.warn('portrait analysis failed', e);
     if (isActive(item)) updateAiStatus();
@@ -822,6 +826,7 @@ function setTab(name) {
     t.setAttribute('aria-selected', on ? 'true' : 'false');
   });
   $$('.tab-panel').forEach(p => p.classList.toggle('is-on', p.dataset.panel === name));
+  if (eraser) eraser.setActive(name === 'erase');
 }
 
 /* ── 모바일 시트 ─────────────────────────────────────── */
@@ -1033,6 +1038,7 @@ function setCompare(on) {
   els.compareLine.style.left = state.split + '%';
   els.canvasInner.classList.toggle('is-compare', on);
   els.btnCompare.setAttribute('aria-pressed', on ? 'true' : 'false');
+  if (eraser) eraser.refresh();
 }
 
 function updateSplit(pct) {
@@ -1088,6 +1094,59 @@ function resetActive() {
 }
 
 /* ── 이벤트 ─────────────────────────────────────────── */
+/* ── 지우개 결과 반영 ───────────────────────────────── */
+async function applyErased(item, canvas, opts = {}) {
+  item.eraseUndo = item.eraseUndo || [];
+  if (opts.undo) {
+    const prev = item.eraseUndo.pop();
+    if (!prev) return;
+    item.source = prev.source;
+    item.width = prev.width;
+    item.height = prev.height;
+    item.url = prev.url;
+  } else if (canvas) {
+    item.eraseUndo.push({ source: item.source, width: item.width, height: item.height, url: item.url });
+    if (item.eraseUndo.length > 4) item.eraseUndo.shift();
+    let bmp;
+    try { bmp = await createImageBitmap(canvas); } catch (e) { bmp = canvas; }
+    item.source = bmp;
+    item.width = bmp.width;
+    item.height = bmp.height;
+    const t = document.createElement('canvas');
+    const tw = 220, th = Math.max(24, Math.round(tw * item.height / item.width));
+    t.width = tw; t.height = th;
+    t.getContext('2d').drawImage(canvas, 0, 0, tw, th);
+    item.url = t.toDataURL('image/jpeg', 0.7);
+  } else {
+    return;
+  }
+
+  // 사진이 바뀌었으므로 인물·피부 마스크와 보케를 새로 계산한다
+  item.masks = { skin: null, person: null, mode: 'none' };
+  item.analysisStarted = false;
+  item.bokeh = null;
+  item.bokehMasked = false;
+  item.warpKey = null;
+  item.warpCanvas = undefined;
+  try { item.stats = imageStats(item.source, 220); } catch (e) { /* 통계는 기존 값 유지 */ }
+
+  const film = els.filmTrack.querySelector(`.film-item[data-id="${item.id}"] img`);
+  if (film) film.src = item.url;
+  if (renderer) {
+    renderer.setSource(item.source);
+    renderer.setMasks({});
+    renderer.setBokeh({});
+    renderer.setWarp(null);
+  }
+  els.fileMeta.textContent = `${item.width} × ${item.height}`;
+  markEdited(item);
+  draw();
+  updateMeta();
+  ensureAnalysis(item);
+  refreshPresetThumbs();
+  if (eraser) eraser.refresh();
+}
+
 function bindEvents() {
   const pick = () => els.fileInput.click();
   $('#btnImport').addEventListener('click', pick);
@@ -1464,6 +1523,13 @@ function init() {
   buildPresetGrid();
   bindSliders();
   bindEvents();
+  eraser = initEraser({
+    getItem: activeItem,
+    applyErased,
+    toast,
+    setBusy: v => { state.busy = v; },
+    isSuppressed: () => state.compare
+  });
   loadRefLibrary();
   renderRefCards();
   setTab('light');
