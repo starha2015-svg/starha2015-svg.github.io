@@ -1,8 +1,8 @@
-import { PRESETS, PRESET_BY_ID, blendLook } from './presets.js?v=7';
-import { Renderer } from './gl.js?v=7';
-import { buildBokehCanvases } from './bokeh.js?v=7';
-import { imageStats, estimateAdjust, fmtEV, fmtSigned } from './color.js?v=7';
-import { buildFallbackMasks, analyzePortrait } from './ai.js?v=7';
+import { PRESETS, PRESET_BY_ID, blendLook } from './presets.js?v=8';
+import { Renderer } from './gl.js?v=8';
+import { buildBokehCanvases } from './bokeh.js?v=8';
+import { imageStats, estimateAdjust, fmtEV, fmtSigned } from './color.js?v=8';
+import { buildFallbackMasks, analyzePortrait } from './ai.js?v=8';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));

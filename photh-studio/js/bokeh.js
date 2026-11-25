@@ -22,7 +22,7 @@ export function buildBokehCanvases(source, w, h, personMask) {
   const blur = makeCanvas(sw, sh);
   const bctx = blur.getContext('2d');
   bctx.imageSmoothingQuality = 'high';
-  const rBlur = Math.max(1.2, sw * 0.030);
+  const rBlur = Math.max(1.6, sw * 0.052);
   bctx.filter = `blur(${rBlur.toFixed(2)}px)`;
   bctx.drawImage(source, 0, 0, sw, sh);
   bctx.filter = 'none';

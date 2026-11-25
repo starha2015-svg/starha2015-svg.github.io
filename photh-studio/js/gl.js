@@ -91,7 +91,15 @@ void main(){
   float person = mix(radialPerson, m, uRadial);
   float bg = 1.0 - smoothstep(0.06, 0.88, person);
 
-  vec3 bgc = mix(sharp, texture(uBlur, vUv).rgb, uBokeh);
+  // 배경 흐림: 기본 블러 + 강도가 높을수록 넓게 퍼지는 다중 샘플 (단렌즈 느낌)
+  float kk = uBokeh * uBokeh;
+  vec2 off = vec2(0.0055 * kk, 0.0055 * kk * uAspect);
+  vec3 bsum = texture(uBlur, vUv).rgb * 0.36;
+  bsum += texture(uBlur, vUv + vec2( off.x, 0.0)).rgb * 0.16;
+  bsum += texture(uBlur, vUv + vec2(-off.x, 0.0)).rgb * 0.16;
+  bsum += texture(uBlur, vUv + vec2(0.0,  off.y)).rgb * 0.16;
+  bsum += texture(uBlur, vUv + vec2(0.0, -off.y)).rgb * 0.16;
+  vec3 bgc = mix(sharp, bsum, uBokeh);
 
   vec3 glow = texture(uGlow, vUv).rgb;
   float gl = max(glow.r, max(glow.g, glow.b));
