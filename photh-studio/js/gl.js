@@ -92,6 +92,7 @@ void main(){
   float bg = 1.0 - smoothstep(0.06, 0.88, person);
 
   // 배경 흐림: 기본 블러 + 강도가 높을수록 넓게 퍼지는 다중 샘플 (단렌즈 느낌)
+  float amt = pow(clamp(uBokeh, 0.0, 1.0), 0.78);
   float kk = uBokeh * uBokeh;
   vec2 off = vec2(0.0055 * kk, 0.0055 * kk * uAspect);
   vec3 bsum = texture(uBlur, vUv).rgb * 0.36;
@@ -99,12 +100,12 @@ void main(){
   bsum += texture(uBlur, vUv + vec2(-off.x, 0.0)).rgb * 0.16;
   bsum += texture(uBlur, vUv + vec2(0.0,  off.y)).rgb * 0.16;
   bsum += texture(uBlur, vUv + vec2(0.0, -off.y)).rgb * 0.16;
-  vec3 bgc = mix(sharp, bsum, uBokeh);
+  vec3 bgc = mix(sharp, bsum, amt);
 
   vec3 glow = texture(uGlow, vUv).rgb;
   float gl = max(glow.r, max(glow.g, glow.b));
   float orb = smoothstep(0.035, 0.26, gl);
-  bgc += glow * orb * uLight * (0.55 + 0.75 * uBokeh);
+  bgc += glow * orb * uLight * (0.55 + 0.75 * amt);
 
   outColor = vec4(clamp(mix(sharp, bgc, bg), 0.0, 1.0), 1.0);
 }
