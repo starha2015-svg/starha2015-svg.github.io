@@ -400,10 +400,14 @@ export function initEraser(hooks) {
     } else {
       // 얼굴이 하나뿐이거나 못 찾은 사진: 가장 큰(또는 중심 얼굴이 있는) 덩어리를 중심 인물로 보고
       // 나머지 큰 덩어리를 지운다
-      const targets = comps.filter(cp =>
-        cp.id !== mainId && cp.area < N * 0.45 &&
-        cp.area > Math.max(N * 0.0025, mainComp.area * 0.05)
-      );
+      const targets = comps.filter(cp => {
+        if (cp.id === mainId) return false;
+        if (cp.area > N * 0.45) return false;
+        if (cp.area <= Math.max(N * 0.0025, mainComp.area * 0.05)) return false;
+        // 사람은 보통 세로로 긴 형태 — 가로로 넓적한 번짐/그림자는 제외
+        const bw = cp.x1 - cp.x0 + 1, bh = cp.y1 - cp.y0 + 1;
+        return bh >= bw * 0.75;
+      });
       if (!targets.length) {
         return { note: '중심 인물 말고는 지울 만한 다른 사람을 찾지 못했습니다. 브러시로 직접 칠해 주세요.' };
       }
