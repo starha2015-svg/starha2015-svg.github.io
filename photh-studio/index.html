@@ -4,9 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PHOTH Studio — 사진 색감 보정·인물 리터칭 (설치 없이 브라우저에서)</title>
-<meta name="description" content="사진 한 장 올리면 바로 쓰는 웹 사진 보정 스튜디오. 프리셋 14종, 노출·색온도·채도·선명도 세부 보정, 피부 리터칭과 배경 흐림, 레퍼런스 사진 색감 따라하기, 원본 해상도 저장과 ZIP 일괄 저장까지 무료. 사진은 서버로 전송되지 않고 기기 브라우저 안에서만 처리됩니다.">
-<meta name="keywords" content="사진 보정, 웹 사진 편집, 라이트룸 대체, 색감 보정, 프리셋, 스냅사진 보정, 피부 보정, 배경 흐림, 레퍼런스 색감, 무료 사진 편집">
-<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="description" content="사진 한 장 올리면 바로 쓰는 웹 사진 보정 스튜디오. 프리셋 14종, 세부 보정과 HSL, 피부·눈·메이크업 리터칭, 얼굴형 보정, 가상 햇빛, 자동 수평, 레퍼런스 색감, 원본 해상도 저장까지. 사진은 서버로 전송되지 않고 기기 브라우저 안에서만 처리됩니다.">
+<meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="author" content="PHOTH Studio">
 <meta name="theme-color" content="#0d0f14">
 <link rel="canonical" href="https://starha2015-svg.github.io/photh-studio/">
@@ -15,7 +14,7 @@
 <meta property="og:site_name" content="PHOTH Studio">
 <meta property="og:locale" content="ko_KR">
 <meta property="og:title" content="PHOTH Studio — 사진 색감 보정·인물 리터칭">
-<meta property="og:description" content="프리셋 14종·세부 보정·피부 리터칭·배경 흐림·레퍼런스 색감 따라하기. 설치 없이 브라우저에서, 사진은 기기 밖으로 나가지 않습니다.">
+<meta property="og:description" content="프리셋·HSL·피부 리터칭·얼굴형·가상 햇빛·자동 수평·레퍼런스 색감. 설치 없이 브라우저에서, 사진은 기기 밖으로 나가지 않습니다.">
 <meta property="og:url" content="https://starha2015-svg.github.io/photh-studio/">
 <meta property="og:image" content="https://starha2015-svg.github.io/photh-studio/assets/og.jpg">
 <meta property="og:image:width" content="1200">
@@ -26,7 +25,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="./css/style.css?v=18">
+<link rel="stylesheet" href="./css/style.css?v=22">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
 <script type="application/ld+json">
 {
@@ -42,7 +41,39 @@
 }
 </script>
 </head>
-<body>
+<body class="is-locked">
+
+<!-- ── 잠금 화면 (비밀번호 해제 전에는 편집 화면을 그리지 않는다) ── -->
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-brand" aria-label="PHOTH Studio">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="24" height="24"><rect x="1.5" y="1.5" width="29" height="29" rx="8" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="16" cy="16" r="7.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="16" cy="16" r="2.6" fill="currentColor"/></svg>
+      </span>
+      <span class="brand-name">PHOTH<span class="brand-sub">Studio</span></span>
+    </div>
+
+    <div class="lock-badge" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="22" height="22"><rect x="5" y="10.5" width="14" height="9.5" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.4 10.5V8.2a3.6 3.6 0 0 1 7.2 0v2.3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+    </div>
+
+    <h1 class="lock-title">비공개 스튜디오</h1>
+    <p class="lock-sub">비밀번호를 입력하면 바로 열립니다.</p>
+
+    <form class="lock-form" id="lockForm" novalidate>
+      <input class="lock-input" id="lockInput" type="password" name="password" inputmode="numeric" autocomplete="current-password" placeholder="비밀번호" aria-label="비밀번호" required>
+      <button class="btn btn-primary btn-wide lock-submit" id="lockSubmit" type="submit">잠금 해제</button>
+      <p class="lock-error" id="lockError" role="alert" aria-live="polite"></p>
+      <label class="lock-remember">
+        <input type="checkbox" id="lockRemember">
+        <span>이 기기에서 기억하기</span>
+      </label>
+    </form>
+
+    <p class="lock-note">사진은 서버로 전송되지 않고, 이 기기 브라우저 안에서만 처리됩니다.</p>
+  </div>
+</div>
+
 <div class="app" id="app">
 
   <header class="topbar">
@@ -61,12 +92,14 @@
     </div>
 
     <div class="topbar-actions">
-      <button class="btn btn-ghost" id="btnSample" type="button">샘플로 체험</button>
       <button class="btn btn-soft" id="btnImport" type="button">
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         사진 가져오기
       </button>
       <button class="btn btn-primary" id="btnExportTop" type="button">저장</button>
+      <button class="lock-btn" id="btnLock" type="button" title="잠그기" aria-label="잠그기">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.4 10.5V8.2a3.6 3.6 0 0 1 7.2 0v2.3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </button>
     </div>
   </header>
 
@@ -137,7 +170,6 @@
           <p>드래그&드롭하거나 사진을 선택하세요. JPG · PNG · WEBP, 여러 장 한 번에 가능합니다.</p>
           <div class="empty-actions">
             <button class="btn btn-primary" id="btnPickEmpty" type="button">사진 선택</button>
-            <button class="btn btn-soft" id="btnSampleEmpty" type="button">샘플 사진으로 체험</button>
           </div>
           <p class="empty-note">사진은 서버로 전송되지 않고, 이 기기 브라우저 안에서만 처리됩니다.</p>
         </div>
@@ -151,12 +183,13 @@
       </div>
     </section>
 
-    <!-- ── 오른쪽: 보정 패널 ──────────────────────────── -->
+    <!-- ── 오른쪽: 도구 패널 ──────────────────────────── -->
     <aside class="panel panel-right" id="panelAdjust" aria-label="보정 도구">
       <div class="panel-head">
         <div class="tabs" role="tablist" aria-label="보정 도구">
           <button class="tab is-on" data-tab="light" role="tab" aria-selected="true" type="button">보정</button>
           <button class="tab" data-tab="retouch" role="tab" aria-selected="false" type="button">리터칭</button>
+          <button class="tab" data-tab="scene" role="tab" aria-selected="false" type="button">배경·조명</button>
           <button class="tab" data-tab="ref" role="tab" aria-selected="false" type="button">레퍼런스</button>
           <button class="tab" data-tab="export" role="tab" aria-selected="false" type="button">저장</button>
         </div>
@@ -165,8 +198,22 @@
 
       <div class="tab-panels">
 
-        <!-- 보정 -->
+        <!-- ══ 보정 ══ -->
         <section class="tab-panel is-on" data-panel="light">
+
+          <div class="group">
+            <div class="group-head"><h3>수평 · 기울기</h3><button class="mini-reset" data-reset-group="tilt" type="button">초기화</button></div>
+            <div class="tilt-row">
+              <button class="btn btn-soft tilt-auto" id="btnAutoLevel" type="button">
+                <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M3 15.5h18M3 9.5h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M6.5 6v12M17.5 6v12" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity=".55"/></svg>
+                자동 수평
+              </button>
+              <span class="tilt-status" id="tiltStatus" aria-live="polite">수평 0.0°</span>
+            </div>
+            <div class="slider" data-key="straighten"><div class="slider-top"><label>수평 각도</label><output></output></div><input type="range" min="-15" max="15" step="0.1" value="0"></div>
+            <p class="hint tiny">기울기를 맞추면 모서리에 빈 곳이 생기지 않도록 필요한 만큼만 자동으로 확대합니다.</p>
+          </div>
+
           <div class="group">
             <div class="group-head"><h3>빛</h3><button class="mini-reset" data-reset-group="light" type="button">초기화</button></div>
             <div class="slider" data-key="exposure"><div class="slider-top"><label>노출</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
@@ -174,6 +221,7 @@
             <div class="slider" data-key="highlights"><div class="slider-top"><label>하이라이트</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
             <div class="slider" data-key="shadows"><div class="slider-top"><label>그림자</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
           </div>
+
           <div class="group">
             <div class="group-head"><h3>색</h3><button class="mini-reset" data-reset-group="color" type="button">초기화</button></div>
             <div class="slider" data-key="temp"><div class="slider-top"><label>색온도</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
@@ -181,6 +229,26 @@
             <div class="slider" data-key="saturation"><div class="slider-top"><label>채도</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
             <div class="slider" data-key="clarity"><div class="slider-top"><label>선명도</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
           </div>
+
+          <div class="group">
+            <div class="group-head"><h3>색상별 HSL</h3><button class="mini-reset" data-reset-group="hsl" type="button">초기화</button></div>
+            <div class="hsl-dots" id="hslDots" role="group" aria-label="조절할 색상">
+              <button class="hsl-dot is-on" data-hsl="0" type="button" title="빨강" style="--dot:#ff5a5a"></button>
+              <button class="hsl-dot" data-hsl="1" type="button" title="주황" style="--dot:#ff9a3d"></button>
+              <button class="hsl-dot" data-hsl="2" type="button" title="노랑" style="--dot:#ffd93d"></button>
+              <button class="hsl-dot" data-hsl="3" type="button" title="초록" style="--dot:#5fd47a"></button>
+              <button class="hsl-dot" data-hsl="4" type="button" title="아쿠아" style="--dot:#4fd4d0"></button>
+              <button class="hsl-dot" data-hsl="5" type="button" title="파랑" style="--dot:#5a8bff"></button>
+              <button class="hsl-dot" data-hsl="6" type="button" title="보라" style="--dot:#a97bff"></button>
+              <button class="hsl-dot" data-hsl="7" type="button" title="마젠타" style="--dot:#ff6bd0"></button>
+            </div>
+            <p class="hsl-name" id="hslName">빨강</p>
+            <div class="slider" data-key="hslHue"><div class="slider-top"><label>색조</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="hslSat"><div class="slider-top"><label>채도</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="hslLum"><div class="slider-top"><label>휘도</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
+            <p class="hint tiny">사진에서 그 색만 골라 톤을 옮깁니다. 얼굴 살구빛은 주황·빨강, 하늘은 파랑·아쿠아에서 조절하세요.</p>
+          </div>
+
           <div class="group">
             <div class="group-head"><h3>질감</h3><button class="mini-reset" data-reset-group="texture" type="button">초기화</button></div>
             <div class="slider" data-key="vignette"><div class="slider-top"><label>비네팅</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
@@ -188,24 +256,46 @@
           </div>
         </section>
 
-        <!-- 리터칭 -->
+        <!-- ══ 리터칭 ══ -->
         <section class="tab-panel" data-panel="retouch">
           <div class="ai-status" id="aiStatus">
             <span class="dot" id="aiDot"></span>
             <span id="aiStatusText">사진을 불러오면 인물 영역을 분석합니다.</span>
           </div>
+
           <div class="group">
             <div class="group-head"><h3>피부</h3><button class="mini-reset" data-reset-group="skin" type="button">초기화</button></div>
             <div class="slider" data-key="smooth"><div class="slider-top"><label>피부 매끈</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
             <div class="slider" data-key="brighten"><div class="slider-top"><label>피부 톤 업</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="blemish"><div class="slider-top"><label>잡티 · 주름 완화</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="darkCircle"><div class="slider-top"><label>다크서클 완화</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="shine"><div class="slider-top"><label>유분기 억제</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
             <p class="hint tiny">피부 영역만 골라 결을 정리합니다. 눈·입술·머리카락은 보호됩니다.</p>
           </div>
+
           <div class="group">
-            <div class="group-head"><h3>배경</h3><button class="mini-reset" data-reset-group="bg" type="button">초기화</button></div>
-            <div class="slider" data-key="bokeh"><div class="slider-top"><label>배경 보케(흐림)</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
-            <div class="slider" data-key="bokehLight"><div class="slider-top"><label>빛망울(보케 하이라이트)</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
-            <p class="hint tiny">인물 윤곽은 그대로 두고 뒤쪽 배경만 단렌즈처럼 날립니다. 밝고 강한 빛은 동그란 빛망울로 맺혀요.</p>
+            <div class="group-head"><h3>눈 · 치아</h3><button class="mini-reset" data-reset-group="eye" type="button">초기화</button></div>
+            <div class="slider" data-key="eyes"><div class="slider-top"><label>눈 밝기 · 선명</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="catchlight"><div class="slider-top"><label>눈 캐치라이트</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="teeth"><div class="slider-top"><label>치아 미백</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
           </div>
+
+          <div class="group">
+            <div class="group-head"><h3>메이크업 · 헤어</h3><button class="mini-reset" data-reset-group="makeup" type="button">초기화</button></div>
+            <div class="slider" data-key="lip"><div class="slider-top"><label>입술 생기</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="blush"><div class="slider-top"><label>볼 블러셔</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="hair"><div class="slider-top"><label>헤어 윤기 · 톤</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+          </div>
+
+          <div class="group">
+            <div class="group-head"><h3>얼굴형</h3><button class="mini-reset" data-reset-group="shape" type="button">초기화</button></div>
+            <div class="slider" data-key="shapeSlim"><div class="slider-top"><label>갸름하게</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="shapeEyes"><div class="slider-top"><label>눈 크기</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="shapeNose"><div class="slider-top"><label>코 슬림</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="shapeSmile"><div class="slider-top"><label>입꼬리 미소</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <p class="hint tiny">얼굴 안쪽만 부드럽게 휘어지고 바깥 배경은 거의 그대로 둡니다. 100은 과하니 20~50 사이를 권합니다.</p>
+          </div>
+
           <div class="group">
             <div class="group-head"><h3>인물 마스크</h3></div>
             <label class="switch">
@@ -216,7 +306,53 @@
           </div>
         </section>
 
-        <!-- 레퍼런스 -->
+        <!-- ══ 배경 · 조명 ══ -->
+        <section class="tab-panel" data-panel="scene">
+
+          <div class="group">
+            <div class="group-head"><h3>배경 흐림</h3><button class="mini-reset" data-reset-group="bg" type="button">초기화</button></div>
+            <div class="slider" data-key="bokeh"><div class="slider-top"><label>배경 보케(흐림)</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="bokehLight"><div class="slider-top"><label>빛망울(보케 하이라이트)</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <p class="hint tiny">인물 윤곽은 그대로 두고 뒤쪽 배경만 단렌즈처럼 날립니다. 밝고 강한 빛은 동그란 빛망울로 맺혀요.</p>
+          </div>
+
+          <div class="group">
+            <div class="group-head"><h3>배경 밝기 · 색</h3><button class="mini-reset" data-reset-group="bgcolor" type="button">초기화</button></div>
+            <div class="slider" data-key="bgBrightness"><div class="slider-top"><label>배경 밝기</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
+            <div class="field">
+              <label for="bgColor">단색 배경 교체</label>
+              <select id="bgColor">
+                <option value="" selected>끄기 (원본 배경)</option>
+                <option value="white">화이트</option>
+                <option value="gray">라이트 그레이</option>
+                <option value="dark">다크 스튜디오</option>
+                <option value="cream">크림</option>
+                <option value="blue">블루</option>
+              </select>
+            </div>
+            <p class="hint tiny">증명사진·스튜디오 컷처럼 배경만 바꿉니다. 인물 경계는 자동으로 페더링됩니다.</p>
+          </div>
+
+          <div class="group">
+            <div class="group-head"><h3>햇빛 · 가상 조명</h3><button class="mini-reset" data-reset-group="sun" type="button">초기화</button></div>
+            <p class="hint">원 안의 해를 끌어다 놓으면 그 방향에서 빛이 들어옵니다. 가운데는 정면광, 가장자리로 갈수록 측면·역광이 됩니다.</p>
+            <div class="sun-pad" id="sunPad" role="application" aria-label="해 방향 조절" tabindex="0">
+              <span class="sun-pad-ring" aria-hidden="true"></span>
+              <span class="sun-pad-core" aria-hidden="true"></span>
+              <span class="sun-pad-label sun-pad-label-top" aria-hidden="true">역광</span>
+              <span class="sun-pad-label sun-pad-label-bottom" aria-hidden="true">정면</span>
+              <span class="sun-handle" id="sunHandle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="4.4" fill="currentColor"/><g stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></g></svg>
+              </span>
+            </div>
+            <div class="slider" data-key="sunStrength"><div class="slider-top"><label>햇빛 강도</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="sunTemp"><div class="slider-top"><label>빛 색감</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="sunGlow"><div class="slider-top"><label>역광 빛 번짐</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <p class="hint tiny">얼굴·옷 주름의 음영을 살려 빛을 얹고, 반대쪽은 눌러 줍니다. 해를 위쪽에 두면 머리카락에 윤슬이 맺힙니다.</p>
+          </div>
+        </section>
+
+        <!-- ══ 레퍼런스 ══ -->
         <section class="tab-panel" data-panel="ref">
           <div class="group">
             <div class="group-head"><h3>레퍼런스 색감 따라하기</h3></div>
@@ -251,9 +387,16 @@
             <button class="btn btn-wide btn-soft" id="btnRefBatch" type="button" disabled>이 색감을 전체 사진에 적용</button>
             <p class="hint tiny">강도 100%에 가까울수록 예시 사진의 톤에 가깝게, 낮을수록 원본의 느낌을 남깁니다.</p>
           </div>
+
+          <div class="group">
+            <div class="group-head"><h3>내 레퍼런스</h3></div>
+            <button class="btn btn-wide btn-primary" id="btnRefSave" type="button" disabled>+ 지금 사진을 내 레퍼런스로 저장</button>
+            <div class="ref-cards" id="refSavedList"></div>
+            <p class="hint tiny" id="refSavedEmpty">저장한 레퍼런스는 이 브라우저에 남아, 다음에 다시 열어도 카드를 누르면 바로 적용됩니다.</p>
+          </div>
         </section>
 
-        <!-- 저장 -->
+        <!-- ══ 저장 ══ -->
         <section class="tab-panel" data-panel="export">
           <div class="group">
             <div class="group-head"><h3>내보내기</h3></div>
@@ -299,8 +442,8 @@
     <button class="mnav is-on" data-mnav="presets" type="button"><span>프리셋</span></button>
     <button class="mnav" data-mnav="light" type="button"><span>보정</span></button>
     <button class="mnav" data-mnav="retouch" type="button"><span>리터칭</span></button>
+    <button class="mnav" data-mnav="scene" type="button"><span>배경·조명</span></button>
     <button class="mnav" data-mnav="ref" type="button"><span>레퍼런스</span></button>
-    <button class="mnav" data-mnav="export" type="button"><span>저장</span></button>
   </nav>
 
   <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
@@ -309,6 +452,6 @@
 </div>
 
 <noscript><p style="padding:24px;color:#e7ebf3">PHOTH Studio는 자바스크립트가 필요합니다. 브라우저 설정에서 자바스크립트를 켜 주세요.</p></noscript>
-<script type="module" src="./js/app.js?v=18"></script>
+<script type="module" src="./js/lock.js?v=22"></script>
 </body>
 </html>

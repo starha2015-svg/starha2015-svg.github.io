@@ -2,7 +2,8 @@ import { PRESETS, PRESET_BY_ID, blendLook } from './presets.js?v=18';
 import { Renderer } from './gl.js?v=18';
 import { buildBokehCanvases } from './bokeh.js?v=18';
 import { imageStats, estimateAdjust, fmtEV, fmtSigned } from './color.js?v=18';
-import { buildFallbackMasks, analyzePortrait } from './ai.js?v=18';
+import { buildFallbackMasks, analyzePortrait } from './ai.js?v=22';
+import { estimateTilt } from './level.js?v=22';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -11,12 +12,6 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 window.__phothErrors = window.__phothErrors || [];
 window.addEventListener('error', e => window.__phothErrors.push(String(e.message || e)));
 window.addEventListener('unhandledrejection', e => window.__phothErrors.push('promise: ' + String((e.reason && e.reason.message) || e.reason)));
-
-const SAMPLE_FILES = [
-  { url: './assets/samples/sample-01.jpg', name: 'portrait_studio.jpg' },
-  { url: './assets/samples/sample-02.jpg', name: 'field_portrait.jpg' },
-  { url: './assets/samples/sample-03.jpg', name: 'street_mood.jpg' }
-];
 
 const els = {
   app: $('#app'),
@@ -63,7 +58,17 @@ const els = {
   qualityRow: $('#qualityRow'),
   showMask: $('#showMask'),
   btnCompare: $('#btnCompare'),
-  btnHold: $('#btnHold')
+  btnHold: $('#btnHold'),
+  sunPad: $('#sunPad'),
+  sunHandle: $('#sunHandle'),
+  tiltStatus: $('#tiltStatus'),
+  bgColor: $('#bgColor'),
+  hslDots: $('#hslDots'),
+  hslName: $('#hslName'),
+  btnAutoLevel: $('#btnAutoLevel'),
+  btnRefSave: $('#btnRefSave'),
+  refSavedList: $('#refSavedList'),
+  refSavedEmpty: $('#refSavedEmpty')
 };
 
 function updateMeta() {
@@ -79,6 +84,7 @@ const state = {
   activeId: null,
   refs: new Map(),
   refSeq: 0,
+  hslSel: 0,
   compare: false,
   split: 50,
   zoom: 1,
@@ -94,12 +100,30 @@ let thumbTimer = 0;
 let thumbToken = 0;
 let thumbRenderer = null;
 
+const HSL_COLORS = [
+  { name: '빨강', h: 0 }, { name: '주황', h: 32 }, { name: '노랑', h: 58 }, { name: '초록', h: 120 },
+  { name: '아쿠아', h: 180 }, { name: '파랑', h: 238 }, { name: '보라', h: 278 }, { name: '마젠타', h: 320 }
+];
+
 function newSettings() {
   return {
     presetId: 'original',
     presetStrength: 100,
-    adjust: { exposure: 0, contrast: 0, highlights: 0, shadows: 0, temp: 0, tint: 0, saturation: 0, clarity: 0, vignette: 0, grain: 0 },
-    retouch: { smooth: 0, brighten: 0, bokeh: 0, bokehLight: 0 },
+    tilt: { angle: 0 },
+    adjust: {
+      exposure: 0, contrast: 0, highlights: 0, shadows: 0, temp: 0, tint: 0,
+      saturation: 0, clarity: 0, vignette: 0, grain: 0,
+      bgBrightness: 0, bgColor: ''
+    },
+    hsl: HSL_COLORS.map(() => ({ h: 0, s: 0, l: 0 })),
+    retouch: {
+      smooth: 0, brighten: 0, blemish: 0, darkCircle: 0, shine: 0,
+      eyes: 0, catchlight: 0, teeth: 0,
+      lip: 0, blush: 0, hair: 0,
+      bokeh: 0, bokehLight: 0
+    },
+    shape: { slim: 0, eyes: 0, nose: 0, smile: 0 },
+    sun: { strength: 0, x: 0, y: 0, glow: 0, temp: 0 },
     match: { refId: null, strength: 75 }
   };
 }
@@ -185,6 +209,124 @@ function refreshPresetThumbs() {
 }
 
 /* ── 유니폼 ──────────────────────────────────────────── */
+const DEG = Math.PI / 180;
+
+/* 수평 회전 + 모서리 여백이 생기지 않는 최소 확대 배율 */
+function straightenFor(item) {
+  const deg = item.settings.tilt.angle || 0;
+  if (!deg) return { rot: 0, zoom: 1 };
+  const t = Math.abs(deg) * DEG;
+  const w = item.width, h = item.height;
+  const zoom = Math.max(
+    Math.cos(t) + Math.sin(t) * (h / w),
+    Math.cos(t) + Math.sin(t) * (w / h)
+  );
+  return { rot: -deg * DEG, zoom: Math.max(1.0001, zoom) };
+}
+
+const BG_COLORS = {
+  white: [0.972, 0.972, 0.968],
+  gray: [0.815, 0.825, 0.835],
+  dark: [0.078, 0.090, 0.110],
+  cream: [0.962, 0.935, 0.870],
+  blue: [0.545, 0.670, 0.855]
+};
+
+/* ── 얼굴형 워핑 (변위 맵) ───────────────────────────── */
+function shapeSig(item) {
+  const s = item.settings.shape;
+  return `${s.slim}|${s.eyes}|${s.nose}|${s.smile}`;
+}
+
+function warpFor(item) {
+  const shape = item.masks && item.masks.shape;
+  const size = item.masks && item.masks.size;
+  if (!shape || !size) return null;
+  const key = shapeSig(item);
+  if (item.warpKey === key && item.warpCanvas !== undefined) return item.warpCanvas;
+  item.warpKey = key;
+  item.warpCanvas = buildWarpCanvas(item, shape, size);
+  return item.warpCanvas;
+}
+
+function buildWarpCanvas(item, shape, size) {
+  const sh = item.settings.shape;
+  if (!(sh.slim || sh.eyes || sh.nose || sh.smile)) return null;
+  const mw = size[0], mh = size[1];
+  const N = 64;
+  const ar = item.height / item.width;
+  const uv = p => (p ? { x: p[0] / mw, y: p[1] / mh } : null);
+  const fw = shape.faceW / mw;
+  const fh = shape.faceH / mh;
+  const A = v => v / 100;
+  const jawL = uv(shape.jawL), jawR = uv(shape.jawR), chin = uv(shape.chin);
+  const eyeL = uv(shape.eyeL), eyeR = uv(shape.eyeR);
+  const noseL = uv(shape.noseL), noseR = uv(shape.noseR);
+  const mouthL = uv(shape.mouthL), mouthR = uv(shape.mouthR);
+
+  const pushes = [];
+  if (sh.slim) {
+    const a = A(sh.slim) * fw * 0.085;
+    if (jawL) pushes.push({ p: jawL, d: [a, 0], r: fw * 0.62 });
+    if (jawR) pushes.push({ p: jawR, d: [-a, 0], r: fw * 0.62 });
+    if (chin) pushes.push({ p: chin, d: [0, -A(sh.slim) * fh * 0.03], r: fw * 0.45 });
+  }
+  if (sh.nose) {
+    const a = A(sh.nose) * fw * 0.028;
+    if (noseL) pushes.push({ p: noseL, d: [a, 0], r: fw * 0.22 });
+    if (noseR) pushes.push({ p: noseR, d: [-a, 0], r: fw * 0.22 });
+  }
+  if (sh.smile) {
+    const a = A(sh.smile) * fw * 0.035, b = A(sh.smile) * fh * 0.022;
+    if (mouthL) pushes.push({ p: mouthL, d: [-a, -b], r: fw * 0.28 });
+    if (mouthR) pushes.push({ p: mouthR, d: [a, -b], r: fw * 0.28 });
+  }
+  const radial = [];
+  if (sh.eyes) {
+    const a = A(sh.eyes) * 0.34;
+    if (eyeL) radial.push({ c: eyeL, r: fw * 0.20, a });
+    if (eyeR) radial.push({ c: eyeR, r: fw * 0.20, a });
+  }
+
+  const cvs = document.createElement('canvas');
+  cvs.width = N;
+  cvs.height = N;
+  const ctx = cvs.getContext('2d');
+  const img = ctx.createImageData(N, N);
+  const MAX = 0.06;
+
+  for (let gy = 0; gy < N; gy++) {
+    for (let gx = 0; gx < N; gx++) {
+      const x = (gx + 0.5) / N;
+      const y = (gy + 0.5) / N;
+      const px = x, py = y * ar;
+      let dxp = 0, dyp = 0;
+      for (const q of pushes) {
+        const dd = Math.hypot(px - q.p.x, py - q.p.y * ar);
+        const wgt = Math.exp(-(dd * dd) / (2 * q.r * q.r));
+        dxp += q.d[0] * wgt;
+        dyp += q.d[1] * wgt;
+      }
+      for (const e of radial) {
+        const vx = px - e.c.x, vy = py - e.c.y * ar;
+        const dd = Math.hypot(vx, vy);
+        const wgt = Math.exp(-(dd * dd) / (2 * e.r * e.r)) * e.a;
+        dxp += vx * wgt;
+        dyp += vy * wgt;
+      }
+      const ux = Math.max(-MAX, Math.min(MAX, dxp));
+      const uy = Math.max(-MAX, Math.min(MAX, dyp / ar));
+      const i = (gy * N + gx) * 4;
+      img.data[i] = Math.round((ux / MAX * 0.5 + 0.5) * 255);
+      img.data[i + 1] = Math.round((uy / MAX * 0.5 + 0.5) * 255);
+      img.data[i + 2] = 128;
+      img.data[i + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return cvs;
+}
+
 function uniformsFor(item, override = {}) {
   const s = item.settings;
   const presetId = override.presetId || s.presetId;
@@ -193,8 +335,31 @@ function uniformsFor(item, override = {}) {
   const look = blendLook(preset.look, Math.max(0, Math.min(100, strength)) / 100);
   const a = s.adjust;
   const r = s.retouch;
+  const sh = s.shape;
+  const sun = s.sun;
   const ref = !override.noMatch && s.match.refId ? state.refs.get(s.match.refId) : null;
   const st = item.stats || { mean: [55, 6, 6], std: [18, 7, 7] };
+  const str = straightenFor(item);
+
+  // 해 방향(2D 패드) → 3D 광원 벡터
+  const rad = Math.min(1, Math.hypot(sun.x, sun.y));
+  const backTop = Math.max(0, -sun.y) * rad;
+  let lz = Math.max(0.16, 1 - 0.92 * rad);
+  lz *= 1 - 0.5 * backTop;
+  const lv = [sun.x * 1.3, sun.y * 1.3, Math.max(lz, 0.14)];
+  const ll = Math.hypot(lv[0], lv[1], lv[2]) || 1;
+  const sunL = [lv[0] / ll, lv[1] / ll, lv[2] / ll];
+
+  const warm = Math.max(0, Math.min(1, sun.temp / 100));
+  const mix3 = (x, y, t) => [x[0] + (y[0] - x[0]) * t, x[1] + (y[1] - x[1]) * t, x[2] + (y[2] - x[2]) * t];
+  const sunColor = mix3([1.0, 0.975, 0.94], [1.0, 0.74, 0.45], warm);
+  const sunGlowColor = mix3([1.0, 0.95, 0.85], [1.0, 0.63, 0.30], warm);
+
+  const hslH = new Float32Array(8), hslS = new Float32Array(8), hslL = new Float32Array(8);
+  s.hsl.forEach((c, i) => { hslH[i] = c.h / 100; hslS[i] = c.s / 100; hslL[i] = c.l / 100; });
+
+  const bgKey = a.bgColor || '';
+  const bgColor = BG_COLORS[bgKey] || [0, 0, 0];
 
   return {
     ev: look.ev + a.exposure / 50,
@@ -219,9 +384,31 @@ function uniformsFor(item, override = {}) {
     lookContrast: look.contrast,
     smooth: r.smooth / 100,
     brighten: r.brighten / 100,
+    blemish: r.blemish / 100,
+    darkCircle: r.darkCircle / 100,
+    shine: r.shine / 100,
+    eyes: r.eyes / 100,
+    catchlight: r.catchlight / 100,
+    teeth: r.teeth / 100,
+    lip: r.lip / 100,
+    blush: r.blush / 100,
+    hair: r.hair / 100,
     smoothRadius: 0.0035 + 0.0085 * (r.smooth / 100),
     bokeh: r.bokeh / 100,
     bokehLight: r.bokehLight / 100,
+    bgBright: a.bgBrightness / 100,
+    bgColor,
+    bgMix: bgKey ? 1 : 0,
+    hslH, hslS, hslL,
+    sunStrength: sun.strength / 100,
+    sunGlow: sun.glow / 100,
+    sunL,
+    sunColor,
+    sunGlowColor,
+    sunUV: [0.5 + Math.max(-1, Math.min(1, sun.x)) * 0.47, 0.5 + Math.max(-1, Math.min(1, sun.y)) * 0.47],
+    rot: str.rot,
+    zoom: str.zoom,
+    warp: (sh.slim || sh.eyes || sh.nose || sh.smile) ? 1 : 0,
     matchStrength: ref ? s.match.strength / 100 : 0,
     srcMean: st.mean,
     srcStd: st.std,
@@ -266,8 +453,20 @@ function draw() {
   const bctx = els.beforeCanvas.getContext('2d');
   bctx.imageSmoothingQuality = 'high';
   bctx.clearRect(0, 0, bw, bh);
-  bctx.drawImage(item.source, 0, 0, bw, bh);
+  const tilt = item.settings.tilt.angle || 0;
+  if (tilt) {
+    const st = straightenFor(item);
+    bctx.save();
+    bctx.translate(bw / 2, bh / 2);
+    bctx.rotate(-st.rot);
+    bctx.scale(st.zoom, st.zoom);
+    bctx.drawImage(item.source, -bw / 2, -bh / 2, bw, bh);
+    bctx.restore();
+  } else {
+    bctx.drawImage(item.source, 0, 0, bw, bh);
+  }
 
+  renderer.setWarp(warpFor(item));
   renderer.render(uniformsFor(item), bw, bh);
 }
 
@@ -362,8 +561,12 @@ function markEdited(item) {
   const s = item.settings;
   const changed =
     s.presetId !== 'original' ||
-    Object.values(s.adjust).some(v => v !== 0) ||
-    s.retouch.smooth > 0 || s.retouch.brighten > 0 || s.retouch.bokeh > 0 || s.retouch.bokehLight > 0 ||
+    (s.tilt.angle || 0) !== 0 ||
+    Object.values(s.adjust).some(v => typeof v === 'number' && v !== 0) || s.adjust.bgColor !== '' ||
+    s.hsl.some(c => c.h || c.s || c.l) ||
+    Object.values(s.retouch).some(v => v > 0) ||
+    Object.values(s.shape).some(v => v > 0) ||
+    (s.sun.strength > 0) ||
     (s.match.refId && s.match.strength > 0);
   item.edited = changed;
   const el = els.filmTrack.querySelector(`.film-item[data-id="${item.id}"]`);
@@ -388,6 +591,7 @@ function selectItem(id) {
     renderer.setSource(item.source);
     renderer.setMasks(item.masks || {});
     renderer.setBokeh(item.bokeh || {});
+    renderer.setWarp(warpFor(item));
   }
   updateFilmSelection();
   els.fileChip.hidden = false;
@@ -420,7 +624,14 @@ async function ensureAnalysis(item) {
   if (isActive(item)) setAiWorking();
   try {
     const res = await analyzePortrait(item.source, item.width, item.height);
-    item.masks = { skin: res.skin, person: res.person, mode: 'ai', coverage: res.coverage, faces: res.faces };
+    item.masks = {
+      skin: res.skin, person: res.person, face: res.face, hair: res.hair,
+      eyes: res.eyes, lips: res.lips, teeth: res.teeth, cheek: res.cheek,
+      underEye: res.underEye, catchlight: res.catchlight,
+      shape: res.shape, faceAngle: res.faceAngle,
+      mode: 'ai', coverage: res.coverage, faces: res.faces, size: res.size
+    };
+    item.warpSig = null;
     try {
       item.bokeh = buildBokehCanvases(item.source, item.width, item.height, res.person);
       item.bokehMasked = true;
@@ -428,6 +639,7 @@ async function ensureAnalysis(item) {
     if (isActive(item) && renderer) {
       renderer.setMasks(item.masks);
       renderer.setBokeh(item.bokeh || {});
+      renderer.setWarp(warpFor(item));
       if (item.settings.retouch.smooth > 0 || item.settings.retouch.brighten > 0 || item.settings.retouch.bokeh > 0 || item.settings.retouch.bokehLight > 0) scheduleRender();
       updateAiStatus();
     }
@@ -480,6 +692,27 @@ const SLIDERS = {
   grain: { get: s => s.adjust.grain, set: (s, v) => s.adjust.grain = v, fmt: v => `${v}` },
   smooth: { get: s => s.retouch.smooth, set: (s, v) => s.retouch.smooth = v, fmt: v => `${v}` },
   brighten: { get: s => s.retouch.brighten, set: (s, v) => s.retouch.brighten = v, fmt: v => `${v}` },
+  blemish: { get: s => s.retouch.blemish, set: (s, v) => s.retouch.blemish = v, fmt: v => `${v}` },
+  darkCircle: { get: s => s.retouch.darkCircle, set: (s, v) => s.retouch.darkCircle = v, fmt: v => `${v}` },
+  shine: { get: s => s.retouch.shine, set: (s, v) => s.retouch.shine = v, fmt: v => `${v}` },
+  eyes: { get: s => s.retouch.eyes, set: (s, v) => s.retouch.eyes = v, fmt: v => `${v}` },
+  catchlight: { get: s => s.retouch.catchlight, set: (s, v) => s.retouch.catchlight = v, fmt: v => `${v}` },
+  teeth: { get: s => s.retouch.teeth, set: (s, v) => s.retouch.teeth = v, fmt: v => `${v}` },
+  lip: { get: s => s.retouch.lip, set: (s, v) => s.retouch.lip = v, fmt: v => `${v}` },
+  blush: { get: s => s.retouch.blush, set: (s, v) => s.retouch.blush = v, fmt: v => `${v}` },
+  hair: { get: s => s.retouch.hair, set: (s, v) => s.retouch.hair = v, fmt: v => `${v}` },
+  shapeSlim: { get: s => s.shape.slim, set: (s, v) => s.shape.slim = v, fmt: v => `${v}` },
+  shapeEyes: { get: s => s.shape.eyes, set: (s, v) => s.shape.eyes = v, fmt: v => `${v}` },
+  shapeNose: { get: s => s.shape.nose, set: (s, v) => s.shape.nose = v, fmt: v => `${v}` },
+  shapeSmile: { get: s => s.shape.smile, set: (s, v) => s.shape.smile = v, fmt: v => `${v}` },
+  straighten: { get: s => s.tilt.angle, set: (s, v) => s.tilt.angle = v, fmt: v => `${v > 0 ? '+' : ''}${v.toFixed(1)}°` },
+  bgBrightness: { get: s => s.adjust.bgBrightness, set: (s, v) => s.adjust.bgBrightness = v, fmt: v => `${v > 0 ? '+' : ''}${v}` },
+  sunStrength: { get: s => s.sun.strength, set: (s, v) => s.sun.strength = v, fmt: v => `${v}` },
+  sunTemp: { get: s => s.sun.temp, set: (s, v) => s.sun.temp = v, fmt: v => `${Math.round(5500 - 23 * v)}K` },
+  sunGlow: { get: s => s.sun.glow, set: (s, v) => s.sun.glow = v, fmt: v => `${v}` },
+  hslHue: { get: s => s.hsl[state.hslSel].h, set: (s, v) => s.hsl[state.hslSel].h = v, fmt: v => `${v > 0 ? '+' : ''}${v}` },
+  hslSat: { get: s => s.hsl[state.hslSel].s, set: (s, v) => s.hsl[state.hslSel].s = v, fmt: v => `${v > 0 ? '+' : ''}${v}` },
+  hslLum: { get: s => s.hsl[state.hslSel].l, set: (s, v) => s.hsl[state.hslSel].l = v, fmt: v => `${v > 0 ? '+' : ''}${v}` },
   bokeh: { get: s => s.retouch.bokeh, set: (s, v) => s.retouch.bokeh = v, fmt: v => `${v}` },
   bokehLight: { get: s => s.retouch.bokehLight, set: (s, v) => s.retouch.bokehLight = v, fmt: v => `${v}` },
   matchStrength: { get: s => s.match.strength, set: (s, v) => s.match.strength = v, fmt: v => `${v}%` },
@@ -513,8 +746,34 @@ function syncUI() {
   els.presetStrength.style.setProperty('--fill', item.settings.presetStrength + '%');
   $$('.preset').forEach(b => b.classList.toggle('is-on', b.dataset.preset === item.settings.presetId));
   syncMatchUI();
+  syncSunUI(item);
+  syncTiltUI(item);
+  syncHslUI(item);
+  if (els.bgColor) els.bgColor.value = item.settings.adjust.bgColor || '';
   updateNamePreview();
   els.showMask && (els.showMask.checked = state.maskView);
+}
+
+function syncSunUI(item) {
+  const sun = item.settings.sun;
+  els.sunHandle.style.left = (50 + sun.x * 46) + '%';
+  els.sunHandle.style.top = (50 + sun.y * 46) + '%';
+  els.sunPad.classList.toggle('is-off', !(sun.strength > 0));
+  els.sunPad.setAttribute('aria-valuetext', `햇빛 ${sun.strength}% · 방향 ${Math.round(sun.x * 100)}, ${Math.round(sun.y * 100)}`);
+}
+
+function syncTiltUI(item) {
+  const d = item.settings.tilt.angle || 0;
+  els.tiltStatus.textContent = `수평 ${d > 0 ? '+' : ''}${d.toFixed(1)}°`;
+}
+
+function syncHslUI(item) {
+  $$('.hsl-dot').forEach(b => b.classList.toggle('is-on', Number(b.dataset.hsl) === state.hslSel));
+  els.hslName.textContent = HSL_COLORS[state.hslSel].name;
+  ['hslHue', 'hslSat', 'hslLum'].forEach(k => {
+    const el = document.querySelector(`.slider[data-key="${k}"]`);
+    if (el) paintSlider(el, SLIDERS[k].get(item.settings));
+  });
 }
 
 function bindSliders() {
@@ -618,6 +877,7 @@ async function renderFullBlob(item) {
       item.bokehMasked = !!(item.masks && item.masks.person);
     }
     r.setBokeh(item.bokeh || {});
+    r.setWarp(warpFor(item));
     const maxTex = Math.min(r.maxTex || 4096, 10000);
     let w = item.width, h = item.height;
     const k = Math.min(1, maxTex / Math.max(w, h));
@@ -734,6 +994,8 @@ async function setReferenceFile(file) {
 function syncMatchUI() {
   const item = activeItem();
   const ref = item && item.settings.match.refId ? state.refs.get(item.settings.match.refId) : null;
+  if (els.btnRefSave) els.btnRefSave.disabled = !ref || !!ref.saved;
+  if (els.btnRefSave && ref) els.btnRefSave.textContent = ref.saved ? '+ 이미 내 레퍼런스에 있음' : '+ 지금 사진을 내 레퍼런스로 저장';
   if (ref) {
     els.refFilled.hidden = false;
     els.refEmpty.hidden = true;
@@ -835,24 +1097,97 @@ function bindEvents() {
     e.target.value = '';
   });
 
-  const loadSamples = async () => {
-    if (state.busy) return;
-    toast('샘플 사진을 불러오는 중…');
-    for (const s of SAMPLE_FILES) {
-      try {
-        const res = await fetch(s.url);
-        if (!res.ok) throw new Error('fetch');
-        const blob = await res.blob();
-        const file = new File([blob], s.name, { type: blob.type || 'image/jpeg' });
-        await addFiles([file]);
-      } catch (e) {
-        console.warn('sample load failed', s.url, e);
-      }
+  // 자동 수평
+  els.btnAutoLevel.addEventListener('click', async () => {
+    const item = activeItem();
+    if (!item) { toast('먼저 사진을 불러와 주세요.'); return; }
+    els.btnAutoLevel.disabled = true;
+    try {
+      if (!item.analysisStarted) await ensureAnalysis(item);
+      const est = estimateTilt(item.source, item.width, item.height, item.masks && item.masks.faceAngle);
+      const deg = Math.max(-15, Math.min(15, Math.round(est.angle * 10) / 10));
+      item.settings.tilt.angle = deg;
+      syncUI();
+      draw();
+      markEdited(item);
+      const how = est.source === 'face' ? '얼굴 눈높이 기준' : est.source === 'edge' ? '수평·수직선 기준' : '기준선을 찾지 못함';
+      toast(`자동 수평 ${deg > 0 ? '+' : ''}${deg.toFixed(1)}° · ${how}`);
+    } finally {
+      els.btnAutoLevel.disabled = false;
     }
-    if (!state.items.length) toast('샘플을 불러오지 못했습니다. 사진을 직접 올려 주세요.');
+  });
+
+  // 해 방향 패드
+  let sunDrag = false;
+  const setSunFrom = e => {
+    const item = activeItem();
+    if (!item) return;
+    const r = els.sunPad.getBoundingClientRect();
+    let x = ((e.clientX - r.left) / Math.max(1, r.width) - 0.5) * 2 / 0.92;
+    let y = ((e.clientY - r.top) / Math.max(1, r.height) - 0.5) * 2 / 0.92;
+    const len = Math.hypot(x, y);
+    if (len > 1) { x /= len; y /= len; }
+    const sun = item.settings.sun;
+    sun.x = Math.round(Math.max(-1, Math.min(1, x)) * 100) / 100;
+    sun.y = Math.round(Math.max(-1, Math.min(1, y)) * 100) / 100;
+    if (sun.strength === 0) sun.strength = 55;
+    syncSunUI(item);
+    const sl = document.querySelector('.slider[data-key="sunStrength"]');
+    if (sl) paintSlider(sl, sun.strength);
+    scheduleRender();
+    markEdited(item);
   };
-  $('#btnSample').addEventListener('click', loadSamples);
-  $('#btnSampleEmpty').addEventListener('click', loadSamples);
+  els.sunPad.addEventListener('pointerdown', e => {
+    if (!activeItem()) return;
+    sunDrag = true;
+    els.sunPad.setPointerCapture?.(e.pointerId);
+    setSunFrom(e);
+  });
+  els.sunPad.addEventListener('pointermove', e => { if (sunDrag) setSunFrom(e); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => els.sunPad.addEventListener(ev, () => { sunDrag = false; }));
+  els.sunPad.addEventListener('keydown', e => {
+    const item = activeItem();
+    if (!item) return;
+    const sun = item.settings.sun;
+    const step = e.shiftKey ? 0.2 : 0.08;
+    let moved = true;
+    if (e.key === 'ArrowLeft') sun.x -= step;
+    else if (e.key === 'ArrowRight') sun.x += step;
+    else if (e.key === 'ArrowUp') sun.y -= step;
+    else if (e.key === 'ArrowDown') sun.y += step;
+    else moved = false;
+    if (!moved) return;
+    e.preventDefault();
+    const len = Math.hypot(sun.x, sun.y);
+    if (len > 1) { sun.x /= len; sun.y /= len; }
+    sun.x = Math.round(sun.x * 100) / 100;
+    sun.y = Math.round(sun.y * 100) / 100;
+    if (sun.strength === 0) sun.strength = 55;
+    syncSunUI(item);
+    const sl = document.querySelector('.slider[data-key="sunStrength"]');
+    if (sl) paintSlider(sl, sun.strength);
+    scheduleRender();
+    markEdited(item);
+  });
+
+  // HSL 색상 선택
+  $$('.hsl-dot').forEach(b => {
+    b.addEventListener('click', () => {
+      state.hslSel = Number(b.dataset.hsl) || 0;
+      const item = activeItem();
+      if (item) syncHslUI(item);
+    });
+  });
+
+  // 배경 색
+  $('#btnRefSave').addEventListener('click', saveCurrentRef);
+  els.bgColor.addEventListener('change', e => {
+    const item = activeItem();
+    if (!item) { e.target.value = ''; return; }
+    item.settings.adjust.bgColor = e.target.value;
+    markEdited(item);
+    scheduleRender();
+  });
 
   $('#btnExportTop').addEventListener('click', () => {
     if (!activeItem()) { els.fileInput.click(); return; }
@@ -931,8 +1266,15 @@ function bindEvents() {
       if (g === 'light') { item.settings.adjust.exposure = 0; item.settings.adjust.contrast = 0; item.settings.adjust.highlights = 0; item.settings.adjust.shadows = 0; }
       if (g === 'color') { item.settings.adjust.temp = 0; item.settings.adjust.tint = 0; item.settings.adjust.saturation = 0; item.settings.adjust.clarity = 0; }
       if (g === 'texture') { item.settings.adjust.vignette = 0; item.settings.adjust.grain = 0; }
-      if (g === 'skin') { item.settings.retouch.smooth = 0; item.settings.retouch.brighten = 0; }
+      if (g === 'skin') { item.settings.retouch.smooth = 0; item.settings.retouch.brighten = 0; item.settings.retouch.blemish = 0; item.settings.retouch.darkCircle = 0; item.settings.retouch.shine = 0; }
+      if (g === 'eye') { item.settings.retouch.eyes = 0; item.settings.retouch.catchlight = 0; item.settings.retouch.teeth = 0; }
+      if (g === 'makeup') { item.settings.retouch.lip = 0; item.settings.retouch.blush = 0; item.settings.retouch.hair = 0; }
+      if (g === 'shape') { item.settings.shape = { slim: 0, eyes: 0, nose: 0, smile: 0 }; item.warpKey = null; }
       if (g === 'bg') { item.settings.retouch.bokeh = 0; item.settings.retouch.bokehLight = 0; }
+      if (g === 'bgcolor') { item.settings.adjust.bgBrightness = 0; item.settings.adjust.bgColor = ''; }
+      if (g === 'tilt') { item.settings.tilt.angle = 0; }
+      if (g === 'hsl') { item.settings.hsl = HSL_COLORS.map(() => ({ h: 0, s: 0, l: 0 })); }
+      if (g === 'sun') { item.settings.sun = { strength: 0, x: 0, y: 0, glow: 0, temp: 0 }; }
       syncUI();
       scheduleRender();
       markEdited(item);
@@ -1020,19 +1362,115 @@ function bindEvents() {
   window.addEventListener('orientationchange', () => setTimeout(draw, 240));
 }
 
+/* ── 내 레퍼런스 (localStorage) ─────────────────────── */
+const REF_STORE = 'photh.refs.v1';
+
+function loadRefLibrary() {
+  try {
+    const raw = localStorage.getItem(REF_STORE);
+    if (!raw) return;
+    const list = JSON.parse(raw);
+    if (!Array.isArray(list)) return;
+    list.forEach(e => {
+      if (!e || !e.id || !e.stats || !e.thumb) return;
+      state.refs.set(e.id, { ...e, saved: true });
+      const n = Number(String(e.id).replace(/\D/g, '')) || 0;
+      if (n > state.refSeq) state.refSeq = n;
+    });
+  } catch (e) { /* 저장된 레퍼런스가 깨져 있으면 무시 */ }
+}
+
+function saveRefLibrary() {
+  try {
+    const list = [...state.refs.values()]
+      .filter(r => r.saved)
+      .map(r => ({ id: r.id, name: r.name, thumb: r.thumb, stats: r.stats, createdAt: r.createdAt || Date.now() }));
+    localStorage.setItem(REF_STORE, JSON.stringify(list));
+  } catch (e) {
+    toast('브라우저 저장 공간이 부족해 레퍼런스를 저장하지 못했습니다.');
+  }
+}
+
+function renderRefCards() {
+  if (!els.refSavedList) return;
+  const list = [...state.refs.values()].filter(r => r.saved).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  const item = activeItem();
+  const activeRef = item && item.settings.match ? item.settings.match.refId : null;
+  els.refSavedList.innerHTML = '';
+  els.refSavedEmpty.hidden = list.length > 0;
+
+  list.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'ref-card' + (r.id === activeRef ? ' is-on' : '');
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', `${r.name} 색감 적용`);
+
+    const img = document.createElement('img');
+    img.src = r.thumb;
+    img.alt = '';
+    const name = document.createElement('span');
+    name.textContent = r.name;
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'ref-card-del';
+    del.textContent = '✕';
+    del.setAttribute('aria-label', `${r.name} 삭제`);
+    card.append(img, name, del);
+
+    const apply = () => {
+      const it = activeItem();
+      if (!it) { toast('먼저 사진을 불러와 주세요.'); return; }
+      it.settings.match = { refId: r.id, strength: it.settings.match.strength || 75 };
+      markEdited(it);
+      syncUI();
+      scheduleRender();
+      renderRefCards();
+      toast(`'${r.name}' 색감을 적용했습니다.`);
+    };
+    card.addEventListener('click', e => { if (e.target.closest('.ref-card-del')) return; apply(); });
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); apply(); } });
+    del.addEventListener('click', e => {
+      e.stopPropagation();
+      state.refs.delete(r.id);
+      saveRefLibrary();
+      const it = activeItem();
+      if (it && it.settings.match.refId === r.id) { it.settings.match.refId = null; markEdited(it); scheduleRender(); }
+      syncMatchUI();
+      renderRefCards();
+      toast(`${r.name}을(를) 삭제했습니다.`);
+    });
+    els.refSavedList.appendChild(card);
+  });
+}
+
+function saveCurrentRef() {
+  const item = activeItem();
+  const ref = item && item.settings.match.refId ? state.refs.get(item.settings.match.refId) : null;
+  if (!ref) { toast('먼저 레퍼런스 사진을 올려 주세요.'); return; }
+  if (ref.saved) { toast('이미 내 레퍼런스에 저장되어 있습니다.'); return; }
+  const count = [...state.refs.values()].filter(r => r.saved).length;
+  ref.name = `레퍼런스 ${count + 1}`;
+  ref.saved = true;
+  ref.createdAt = Date.now();
+  saveRefLibrary();
+  renderRefCards();
+  toast(`'${ref.name}'으로 저장했습니다.`);
+}
+
 /* ── 초기화 ─────────────────────────────────────────── */
 function init() {
   buildPresetGrid();
   bindSliders();
   bindEvents();
+  loadRefLibrary();
+  renderRefCards();
   setTab('light');
   setCompare(false);
-  ['exposure', 'contrast', 'highlights', 'shadows', 'temp', 'tint', 'saturation', 'clarity', 'vignette', 'grain', 'smooth', 'brighten', 'bokeh', 'bokehLight', 'matchStrength'].forEach(k => {
-    const el = document.querySelector(`.slider[data-key="${k}"]`);
-    if (el) {
-      const input = el.querySelector('input[type=range]');
-      paintSlider(el, Number(input.value));
-    }
+  $$('.slider[data-key]').forEach(el => {
+    if (el === els.qualityRow) return;
+    const input = el.querySelector('input[type=range]');
+    if (input) paintSlider(el, Number(input.value));
   });
   paintSlider(els.qualityRow, state.quality);
   els.presetStrength.style.setProperty('--fill', '100%');

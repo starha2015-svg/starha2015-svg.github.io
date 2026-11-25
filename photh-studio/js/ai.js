@@ -185,6 +185,7 @@ async function analyzePortraitInner(source, w, h) {
 
   const skinArr = new Float32Array(mw * mh);
   const personArr = new Float32Array(mw * mh);
+  const hairArr = new Float32Array(mw * mh);
   let skinCount = 0;
   for (let i = 0; i < mw * mh; i++) {
     const s = Math.min(1, bodySkin[i] + faceSkin[i]);
@@ -198,6 +199,7 @@ async function analyzePortraitInner(source, w, h) {
     if (clothes) p = Math.max(p, clothes[i] * 0.98);
     if (other) p = Math.max(p, other[i] * 0.9);
     personArr[i] = Math.min(1, p);
+    hairArr[i] = hair ? Math.min(1, hair[i]) : 0;
   }
   const coverage = skinCount / (mw * mh);
 
@@ -208,12 +210,24 @@ async function analyzePortraitInner(source, w, h) {
 
   // 눈·입술·눈썹은 스무딩에서 제외 (표정과 디테일 보존)
   let faces = 0;
+  let faceAngle = null;
+  let faceCanvas = null;
+  let features = null;
   try {
     const lm = await getFaceLandmarker();
     const fres = lm.detect(input);
     faces = fres.faceLandmarks ? fres.faceLandmarks.length : 0;
     if (faces > 0) {
       skinCanvas = protectFeatures(skinCanvas, fres.faceLandmarks, iw, ih, mw, mh);
+      faceCanvas = buildFaceDepth(fres.faceLandmarks, iw, ih, mw, mh);
+      features = buildFeatureMasks(fres.faceLandmarks, mw, mh);
+      const a = fres.faceLandmarks[0][33];
+      const b = fres.faceLandmarks[0][263];
+      if (a && b) {
+        const dx = (b.x - a.x) * iw;
+        const dy = (b.y - a.y) * ih;
+        faceAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+      }
     }
     fres.close?.();
   } catch (e) {
@@ -223,11 +237,183 @@ async function analyzePortraitInner(source, w, h) {
   return {
     skin: skinCanvas,
     person: personCanvas,
+    face: faceCanvas,
+    hair: hair ? maskFromFloat(hairArr, mw, mh, 3.0) : null,
+    eyes: features ? features.eyes : null,
+    lips: features ? features.lips : null,
+    teeth: features ? features.teeth : null,
+    cheek: features ? features.cheek : null,
+    underEye: features ? features.underEye : null,
+    catchlight: features ? features.catchlight : null,
+    shape: features ? features.shape : null,
+    faceAngle,
     mode: 'ai',
     coverage,
     faces,
     size: [mw, mh]
   };
+}
+
+/* 얼굴 랜드마크 → 부위별 마스크(눈·입술·치아·볼·눈밑·캐치라이트)와 얼굴형 좌표 */
+const LIPS_OUTER = [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146];
+const MOUTH_INNER = [78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95];
+
+function buildFeatureMasks(landmarksList, mw, mh) {
+  const lms = landmarksList[0];
+  if (!lms) return null;
+  const P = i => (lms[i] ? [lms[i].x * mw, lms[i].y * mh] : null);
+  const jawL = P(234), jawR = P(454), chin = P(152), top = P(10);
+  if (!jawL || !jawR) return null;
+
+  const faceW = Math.hypot(jawR[0] - jawL[0], jawR[1] - jawL[1]) || Math.min(mw, mh) * 0.3;
+  const faceH = chin && top ? Math.abs(chin[1] - top[1]) : faceW * 1.25;
+  const cx = (jawL[0] + jawR[0]) / 2;
+
+  const blank = () => {
+    const c = makeCanvas(mw, mh);
+    const x = c.getContext('2d');
+    x.fillStyle = '#000';
+    x.fillRect(0, 0, mw, mh);
+    return { c, x };
+  };
+  const soften = (src, px) => {
+    const o = makeCanvas(mw, mh);
+    const octx = o.getContext('2d');
+    octx.filter = `blur(${px}px)`;
+    octx.drawImage(src, 0, 0);
+    return o;
+  };
+  const poly = (ctx, idxs) => {
+    const pts = idxs.map(i => [lms[i].x * mw, lms[i].y * mh]);
+    ctx.beginPath();
+    pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
+    ctx.closePath();
+    ctx.fill();
+  };
+  const blob = (ctx, x, y, rx, ry, a) => {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, Math.max(rx, ry));
+    g.addColorStop(0, `rgba(255,255,255,${a})`);
+    g.addColorStop(0.55, `rgba(255,255,255,${a * 0.72})`);
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(1, ry / Math.max(rx, ry));
+    ctx.translate(-x, -y);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(rx, ry), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  };
+
+  // 눈 영역 (윤곽 + 홍채 중심)
+  const eye = blank();
+  eye.x.fillStyle = '#fff';
+  for (const grp of [EYE_A, EYE_B]) {
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const idx of grp) {
+      const p = P(idx);
+      if (!p) continue;
+      x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]);
+      y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]);
+    }
+    if (x1 < x0) continue;
+    eye.x.beginPath();
+    eye.x.ellipse((x0 + x1) / 2, (y0 + y1) / 2, Math.max(2, (x1 - x0) * 0.62), Math.max(2, (y1 - y0) * 0.8), 0, 0, Math.PI * 2);
+    eye.x.fill();
+  }
+
+  // 입술
+  const lip = blank();
+  lip.x.fillStyle = '#fff';
+  try { poly(lip.x, LIPS_OUTER); } catch (e) { /* 무시 */ }
+
+  // 치아(입 안쪽) — 밝기를 곱해 실제 치아만 남긴다
+  const teeth = blank();
+  teeth.x.fillStyle = '#fff';
+  try { poly(teeth.x, MOUTH_INNER); } catch (e) { /* 무시 */ }
+
+  // 볼
+  const cheek = blank();
+  const lcC = P(50), rcC = P(280);
+  const cheekR = Math.max(4, faceW * 0.24);
+  if (lcC) blob(cheek.x, lcC[0], lcC[1], cheekR, cheekR * 0.85, 0.95);
+  if (rcC) blob(cheek.x, rcC[0], rcC[1], cheekR, cheekR * 0.85, 0.95);
+
+  // 눈 밑
+  const under = blank();
+  const eyeLc = P(145), eyeRc = P(374);
+  const uR = Math.max(3, faceW * 0.17);
+  if (eyeLc) blob(under.x, eyeLc[0], eyeLc[1] + uR * 0.35, uR, uR * 0.62, 0.9);
+  if (eyeRc) blob(under.x, eyeRc[0], eyeRc[1] + uR * 0.35, uR, uR * 0.62, 0.9);
+
+  // 캐치라이트 (홍채 중심에서 살짝 위)
+  const catchL = blank();
+  const irisL = P(468) || eyeLc, irisR = P(473) || eyeRc;
+  const cR = Math.max(2, faceW * 0.055);
+  if (irisL) blob(catchL.x, irisL[0] + cR * 0.45, irisL[1] - cR * 0.5, cR, cR, 1);
+  if (irisR) blob(catchL.x, irisR[0] + cR * 0.45, irisR[1] - cR * 0.5, cR, cR, 1);
+
+  const shape = {
+    jawL, jawR, chin, top, faceW, faceH, cx,
+    eyeL: eyeLc, eyeR: eyeRc,
+    noseL: P(129), noseR: P(358),
+    mouthL: P(61), mouthR: P(291)
+  };
+
+  return {
+    eyes: soften(eye.c, 1.6),
+    lips: soften(lip.c, 1.8),
+    teeth: soften(teeth.c, 1.2),
+    cheek: soften(cheek.c, 6),
+    underEye: soften(under.c, 3.5),
+    catchlight: soften(catchL.c, 1.0),
+    shape
+  };
+}
+
+/* 얼굴 랜드마크 → 2.5D 높이장(얼굴 돔 + 코). 햇빛 방향 계산에 쓰인다. */
+function buildFaceDepth(landmarksList, iw, ih, mw, mh) {
+  const arr = new Float32Array(mw * mh);
+  let any = false;
+  for (const lms of landmarksList) {
+    const pt = i => {
+      const p = lms[i];
+      return p ? [p.x * mw, p.y * mh] : null;
+    };
+    const top = pt(10), nose = pt(1), chin = pt(152), lc = pt(234), rc = pt(454);
+    if (!top || !nose || !chin || !lc || !rc) continue;
+    const faceW = Math.hypot(rc[0] - lc[0], rc[1] - lc[1]);
+    if (!(faceW > 4)) continue;
+    any = true;
+    const cx = (lc[0] + rc[0]) / 2;
+    const cy = (top[1] + chin[1]) / 2;
+    const rx = Math.max(4, faceW * 0.66);
+    const ry = Math.max(4, Math.abs(chin[1] - top[1]) * 0.62);
+    for (let y = Math.max(0, Math.floor(cy - ry)); y < Math.min(mh, Math.ceil(cy + ry)); y++) {
+      for (let x = Math.max(0, Math.floor(cx - rx)); x < Math.min(mw, Math.ceil(cx + rx)); x++) {
+        const dx = (x - cx) / rx, dy = (y - cy) / ry;
+        const d2 = dx * dx + dy * dy;
+        if (d2 >= 1) continue;
+        const v = Math.sqrt(1 - d2) * 0.82;
+        const i = y * mw + x;
+        if (v > arr[i]) arr[i] = v;
+      }
+    }
+    // 코: 작고 뾰족한 봉우리
+    const sigma = Math.max(2, faceW * 0.13);
+    const rad = Math.ceil(sigma * 3);
+    for (let y = Math.max(0, Math.floor(nose[1]) - rad); y < Math.min(mh, Math.ceil(nose[1]) + rad); y++) {
+      for (let x = Math.max(0, Math.floor(nose[0]) - rad); x < Math.min(mw, Math.ceil(nose[0]) + rad); x++) {
+        const dx = x - nose[0], dy = y - nose[1];
+        const v = Math.exp(-(dx * dx + dy * dy) / (2 * sigma * sigma)) * 0.55;
+        const i = y * mw + x;
+        arr[i] = Math.min(1, arr[i] + v);
+      }
+    }
+  }
+  if (!any) return null;
+  return maskFromFloat(arr, mw, mh, 1.4);
 }
 
 function protectFeatures(skinCanvas, landmarksList, iw, ih, mw, mh) {
