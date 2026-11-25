@@ -182,10 +182,11 @@ code{font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px;
 .compare-tag{
   position:absolute; top:10px; font-size:10px; font-weight:800; letter-spacing:.1em; color:#fff;
   background:rgba(0,0,0,.55); padding:3px 7px; border-radius:5px; backdrop-filter:blur(4px);
+  z-index:5; pointer-events:none; display:none;
 }
-.compare-tag-before{left:10px; transform:translateX(0); margin-left:-100%;}
+.canvas-inner.is-compare .compare-tag{display:block}
+.compare-tag-before{left:10px}
 .compare-tag-after{right:10px}
-.compare-line .compare-tag-before{display:none}
 
 /* empty state */
 .empty-state{

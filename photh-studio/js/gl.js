@@ -89,7 +89,7 @@ void main(){
   vec2 p = (vUv - 0.5) * vec2(uAspect, 1.0);
   float radialPerson = 1.0 - smoothstep(0.18, 0.62, length(p) * 1.35);
   float person = mix(radialPerson, m, uRadial);
-  float bg = 1.0 - smoothstep(0.10, 0.80, person);
+  float bg = 1.0 - smoothstep(0.06, 0.88, person);
 
   vec3 bgc = mix(sharp, texture(uBlur, vUv).rgb, uBokeh);
 

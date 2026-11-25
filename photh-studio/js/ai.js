@@ -204,7 +204,7 @@ async function analyzePortraitInner(source, w, h) {
   res.close?.();
 
   let skinCanvas = maskFromFloat(skinArr, mw, mh, 1.6);
-  const personCanvas = maskFromFloat(personArr, mw, mh, 1.8, 0.85);
+  const personCanvas = maskFromFloat(personArr, mw, mh, 3.4, 0.85);
 
   // 눈·입술·눈썹은 스무딩에서 제외 (표정과 디테일 보존)
   let faces = 0;
