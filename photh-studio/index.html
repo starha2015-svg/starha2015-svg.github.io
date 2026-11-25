@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PHOTH Studio — 사진 색감 보정·인물 리터칭 (설치 없이 브라우저에서)</title>
+<meta name="description" content="사진 한 장 올리면 바로 쓰는 웹 사진 보정 스튜디오. 프리셋 14종, 노출·색온도·채도·선명도 세부 보정, 피부 리터칭과 배경 흐림, 레퍼런스 사진 색감 따라하기, 원본 해상도 저장과 ZIP 일괄 저장까지 무료. 사진은 서버로 전송되지 않고 기기 브라우저 안에서만 처리됩니다.">
+<meta name="keywords" content="사진 보정, 웹 사진 편집, 라이트룸 대체, 색감 보정, 프리셋, 스냅사진 보정, 피부 보정, 배경 흐림, 레퍼런스 색감, 무료 사진 편집">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="author" content="PHOTH Studio">
+<meta name="theme-color" content="#0d0f14">
+<link rel="canonical" href="https://starha2015-svg.github.io/photh-studio/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="PHOTH Studio">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="PHOTH Studio — 사진 색감 보정·인물 리터칭">
+<meta property="og:description" content="프리셋 14종·세부 보정·피부 리터칭·배경 흐림·레퍼런스 색감 따라하기. 설치 없이 브라우저에서, 사진은 기기 밖으로 나가지 않습니다.">
+<meta property="og:url" content="https://starha2015-svg.github.io/photh-studio/">
+<meta property="og:image" content="https://starha2015-svg.github.io/photh-studio/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="./css/style.css">
+<link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "PHOTH Studio",
+  "url": "https://starha2015-svg.github.io/photh-studio/",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any (웹 브라우저)",
+  "inLanguage": "ko",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" },
+  "description": "브라우저 안에서만 동작하는 사진 색감 보정·인물 리터칭 스튜디오."
+}
+</script>
+</head>
+<body>
+<div class="app" id="app">
+
+  <header class="topbar">
+    <div class="brand" aria-label="PHOTH Studio">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="26" height="26"><rect x="1.5" y="1.5" width="29" height="29" rx="8" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="16" cy="16" r="7.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="16" cy="16" r="2.6" fill="currentColor"/></svg>
+      </span>
+      <span class="brand-name">PHOTH<span class="brand-sub">Studio</span></span>
+    </div>
+
+    <div class="topbar-center">
+      <span class="file-chip" id="fileChip" hidden>
+        <span class="file-chip-name" id="fileName">—</span>
+        <span class="file-chip-meta" id="fileMeta"></span>
+      </span>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="btnSample" type="button">샘플로 체험</button>
+      <button class="btn btn-soft" id="btnImport" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        사진 가져오기
+      </button>
+      <button class="btn btn-primary" id="btnExportTop" type="button">저장</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+
+    <!-- ── 왼쪽: 프리셋 ───────────────────────────────── -->
+    <aside class="panel panel-left" id="panelPresets" aria-label="프리셋">
+      <div class="panel-head">
+        <h2>색감 프리셋</h2>
+        <button class="icon-btn sheet-close" id="presetClose" type="button" aria-label="닫기">✕</button>
+      </div>
+
+      <div class="preset-strength">
+        <div class="row-between">
+          <label for="presetStrength">프리셋 강도</label>
+          <output id="presetStrengthOut">100%</output>
+        </div>
+        <input type="range" id="presetStrength" min="0" max="100" step="1" value="100">
+      </div>
+
+      <div class="preset-grid" id="presetGrid"><!-- js --></div>
+
+      <div class="panel-foot">
+        <button class="btn btn-wide btn-soft" id="btnBatchApply" type="button">현재 설정 전체 사진에 적용</button>
+        <p class="hint tiny">프리셋·세부 보정·리터칭 설정이 사진 전체에 똑같이 적용됩니다.</p>
+      </div>
+    </aside>
+
+    <!-- ── 가운데: 캔버스 ─────────────────────────────── -->
+    <section class="stage" aria-label="편집 화면">
+      <div class="stage-toolbar">
+        <div class="seg" role="group" aria-label="보기 모드">
+          <button class="seg-btn is-on" id="zoomFit" type="button">맞춤</button>
+          <button class="seg-btn" id="zoom100" type="button">100%</button>
+        </div>
+        <button class="tool-btn" id="btnCompare" type="button" aria-pressed="false">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 5v14" stroke="currentColor" stroke-width="1.6"/></svg>
+          전/후 비교
+        </button>
+        <button class="tool-btn" id="btnHold" type="button" title="누르고 있는 동안 원본">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+          원본 보기
+        </button>
+        <div class="stage-spacer"></div>
+        <button class="tool-btn" id="btnResetOne" type="button">이 사진 초기화</button>
+      </div>
+
+      <div class="canvas-scroll" id="canvasScroll">
+        <div class="canvas-inner" id="canvasInner">
+          <canvas id="beforeCanvas" aria-hidden="true"></canvas>
+          <div class="after-holder" id="afterHolder">
+            <canvas id="afterCanvas"></canvas>
+          </div>
+          <div class="compare-line" id="compareLine" hidden>
+            <span class="compare-grip" aria-hidden="true"></span>
+            <span class="compare-tag compare-tag-before">BEFORE</span>
+            <span class="compare-tag compare-tag-after">AFTER</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" id="emptyState">
+        <div class="empty-card">
+          <div class="empty-icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48" width="40" height="40"><rect x="4" y="9" width="40" height="30" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="24" cy="24" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="24" cy="24" r="3" fill="currentColor"/><path d="M15 9l2.5-4h13L33 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          </div>
+          <h1>사진을 놓으면 바로 시작합니다</h1>
+          <p>드래그&드롭하거나 사진을 선택하세요. JPG · PNG · WEBP, 여러 장 한 번에 가능합니다.</p>
+          <div class="empty-actions">
+            <button class="btn btn-primary" id="btnPickEmpty" type="button">사진 선택</button>
+            <button class="btn btn-soft" id="btnSampleEmpty" type="button">샘플 사진으로 체험</button>
+          </div>
+          <p class="empty-note">사진은 서버로 전송되지 않고, 이 기기 브라우저 안에서만 처리됩니다.</p>
+        </div>
+      </div>
+
+      <div class="filmstrip" id="filmstrip" hidden>
+        <button class="film-add" id="btnFilmAdd" type="button" title="사진 추가">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <div class="film-track" id="filmTrack"></div>
+      </div>
+    </section>
+
+    <!-- ── 오른쪽: 보정 패널 ──────────────────────────── -->
+    <aside class="panel panel-right" id="panelAdjust" aria-label="보정 도구">
+      <div class="panel-head">
+        <div class="tabs" role="tablist" aria-label="보정 도구">
+          <button class="tab is-on" data-tab="light" role="tab" aria-selected="true" type="button">보정</button>
+          <button class="tab" data-tab="retouch" role="tab" aria-selected="false" type="button">리터칭</button>
+          <button class="tab" data-tab="ref" role="tab" aria-selected="false" type="button">레퍼런스</button>
+          <button class="tab" data-tab="export" role="tab" aria-selected="false" type="button">저장</button>
+        </div>
+        <button class="icon-btn sheet-close" id="adjustClose" type="button" aria-label="닫기">✕</button>
+      </div>
+
+      <div class="tab-panels">
+
+        <!-- 보정 -->
+        <section class="tab-panel is-on" data-panel="light">
+          <div class="group">
+            <div class="group-head"><h3>빛</h3><button class="mini-reset" data-reset-group="light" type="button">초기화</button></div>
+            <div class="slider" data-key="exposure"><div class="slider-top"><label>노출</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="contrast"><div class="slider-top"><label>대비</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="highlights"><div class="slider-top"><label>하이라이트</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="shadows"><div class="slider-top"><label>그림자</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
+          </div>
+          <div class="group">
+            <div class="group-head"><h3>색</h3><button class="mini-reset" data-reset-group="color" type="button">초기화</button></div>
+            <div class="slider" data-key="temp"><div class="slider-top"><label>색온도</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="tint"><div class="slider-top"><label>틴트</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="saturation"><div class="slider-top"><label>채도</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="clarity"><div class="slider-top"><label>선명도</label><output></output></div><input type="range" min="-100" max="100" step="1" value="0"></div>
+          </div>
+          <div class="group">
+            <div class="group-head"><h3>질감</h3><button class="mini-reset" data-reset-group="texture" type="button">초기화</button></div>
+            <div class="slider" data-key="vignette"><div class="slider-top"><label>비네팅</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="grain"><div class="slider-top"><label>필름 그레인</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+          </div>
+        </section>
+
+        <!-- 리터칭 -->
+        <section class="tab-panel" data-panel="retouch">
+          <div class="ai-status" id="aiStatus">
+            <span class="dot" id="aiDot"></span>
+            <span id="aiStatusText">사진을 불러오면 인물 영역을 분석합니다.</span>
+          </div>
+          <div class="group">
+            <div class="group-head"><h3>피부</h3><button class="mini-reset" data-reset-group="skin" type="button">초기화</button></div>
+            <div class="slider" data-key="smooth"><div class="slider-top"><label>피부 매끈</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="brighten"><div class="slider-top"><label>피부 톤 업</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <p class="hint tiny">피부 영역만 골라 결을 정리합니다. 눈·입술·머리카락은 보호됩니다.</p>
+          </div>
+          <div class="group">
+            <div class="group-head"><h3>배경</h3><button class="mini-reset" data-reset-group="bg" type="button">초기화</button></div>
+            <div class="slider" data-key="bokeh"><div class="slider-top"><label>배경 보케(흐림)</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <div class="slider" data-key="bokehLight"><div class="slider-top"><label>빛망울(보케 하이라이트)</label><output></output></div><input type="range" min="0" max="100" step="1" value="0"></div>
+            <p class="hint tiny">인물 윤곽은 그대로 두고 뒤쪽 배경만 단렌즈처럼 날립니다. 밝고 강한 빛은 동그란 빛망울로 맺혀요.</p>
+          </div>
+          <div class="group">
+            <div class="group-head"><h3>인물 마스크</h3></div>
+            <label class="switch">
+              <input type="checkbox" id="showMask">
+              <span>마스크 미리보기</span>
+            </label>
+            <p class="hint tiny">피부·인물 영역이 어떻게 잡혔는지 확인합니다. 저장에는 포함되지 않습니다.</p>
+          </div>
+        </section>
+
+        <!-- 레퍼런스 -->
+        <section class="tab-panel" data-panel="ref">
+          <div class="group">
+            <div class="group-head"><h3>레퍼런스 색감 따라하기</h3></div>
+            <p class="hint">마음에 드는 사진을 올리면 그 사진의 톤·색감·명암을 현재 사진에 맞춰 옮깁니다.</p>
+
+            <div class="ref-drop" id="refDrop" tabindex="0" role="button" aria-label="레퍼런스 사진 선택">
+              <input type="file" id="refInput" accept="image/*" hidden>
+              <div class="ref-empty" id="refEmpty">
+                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>예시 사진 놓기 / 선택</span>
+              </div>
+              <div class="ref-filled" id="refFilled" hidden>
+                <img id="refThumb" alt="레퍼런스 미리보기">
+                <div class="ref-meta">
+                  <strong id="refName">reference.jpg</strong>
+                  <span id="refSize"></span>
+                </div>
+                <button class="icon-btn" id="refRemove" type="button" aria-label="레퍼런스 제거">✕</button>
+              </div>
+            </div>
+
+            <div class="slider" data-key="matchStrength" style="margin-top:14px">
+              <div class="slider-top"><label>매칭 강도</label><output></output></div>
+              <input type="range" min="0" max="100" step="1" value="75">
+            </div>
+
+            <div class="estimate" id="estimate" hidden>
+              <div class="estimate-title">이 레퍼런스가 요구하는 보정량 (추정)</div>
+              <div class="chips" id="estimateChips"></div>
+            </div>
+
+            <button class="btn btn-wide btn-soft" id="btnRefBatch" type="button" disabled>이 색감을 전체 사진에 적용</button>
+            <p class="hint tiny">강도 100%에 가까울수록 예시 사진의 톤에 가깝게, 낮을수록 원본의 느낌을 남깁니다.</p>
+          </div>
+        </section>
+
+        <!-- 저장 -->
+        <section class="tab-panel" data-panel="export">
+          <div class="group">
+            <div class="group-head"><h3>내보내기</h3></div>
+            <div class="field">
+              <label for="exportFormat">파일 형식</label>
+              <select id="exportFormat">
+                <option value="jpeg" selected>JPG (사진용, 용량 작음)</option>
+                <option value="png">PNG (무손실, 용량 큼)</option>
+              </select>
+            </div>
+            <div class="slider" data-key="quality" id="qualityRow">
+              <div class="slider-top"><label>JPG 품질</label><output></output></div>
+              <input type="range" min="60" max="100" step="1" value="92">
+            </div>
+            <p class="hint">원본 해상도 그대로 저장합니다. 파일 이름은 <code id="namePreview">사진_edited.jpg</code> 형태입니다.</p>
+
+            <button class="btn btn-wide btn-primary" id="btnExportOne" type="button">현재 사진 저장</button>
+            <button class="btn btn-wide btn-soft" id="btnExportZip" type="button">전체 사진 ZIP으로 저장</button>
+            <div class="export-progress" id="exportProgress" hidden>
+              <div class="bar"><span id="exportBar"></span></div>
+              <p class="tiny" id="exportProgressText"></p>
+            </div>
+          </div>
+          <div class="group">
+            <div class="group-head"><h3>사진 정보</h3></div>
+            <dl class="meta-list">
+              <div><dt>파일</dt><dd id="metaName">—</dd></div>
+              <div><dt>해상도</dt><dd id="metaSize">—</dd></div>
+              <div><dt>사진 수</dt><dd id="metaCount">0</dd></div>
+            </dl>
+          </div>
+          <div class="group">
+            <div class="group-head"><h3>개인정보</h3></div>
+            <p class="hint tiny">사진은 서버로 전송되지 않고 이 기기 브라우저 안에서만 처리됩니다. 저장 파일에는 워터마크나 별도 표시가 들어가지 않습니다. 페이지를 새로고침하면 작업 내용은 사라지니, 보정한 사진은 저장해 두세요.</p>
+          </div>
+        </section>
+
+      </div>
+    </aside>
+  </main>
+
+  <nav class="mobile-nav" aria-label="도구 선택">
+    <button class="mnav is-on" data-mnav="presets" type="button"><span>프리셋</span></button>
+    <button class="mnav" data-mnav="light" type="button"><span>보정</span></button>
+    <button class="mnav" data-mnav="retouch" type="button"><span>리터칭</span></button>
+    <button class="mnav" data-mnav="ref" type="button"><span>레퍼런스</span></button>
+    <button class="mnav" data-mnav="export" type="button"><span>저장</span></button>
+  </nav>
+
+  <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+  <div class="toast" id="toast" hidden></div>
+  <input type="file" id="fileInput" accept="image/*" multiple hidden>
+</div>
+
+<noscript><p style="padding:24px;color:#e7ebf3">PHOTH Studio는 자바스크립트가 필요합니다. 브라우저 설정에서 자바스크립트를 켜 주세요.</p></noscript>
+<script type="module" src="./js/app.js"></script>
+</body>
+</html>
