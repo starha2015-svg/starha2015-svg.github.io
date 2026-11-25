@@ -355,29 +355,58 @@ export function initEraser(hooks) {
     if (mainFace && mainFace.comp < 0) mainId = comps[0].id;
     const mainComp = comps.find(cp => cp.id === mainId) || comps[0];
 
-    // 얼굴이 검출된 사진에서는 '얼굴이 있는 다른 덩어리'만 지운다 (번짐·그림자 오검출 방지)
+    // 얼굴이 검출된 사진: '얼굴 주변 세로 띠 안의 인물 픽셀'만 지운다
+    // (배경 번짐·그림자까지 잡히던 문제 방지)
     const hasFaces = faces.length > 0;
-    const targets = comps.filter(cp => {
-      if (cp.id === mainId) return false;
-      if (cp.area > N * 0.45) return false;
-      const faceHere = faces.some(f => f.comp === cp.id && f !== mainFace);
-      if (hasFaces) return faceHere;
-      return cp.area > Math.max(N * 0.0025, mainComp.area * 0.05);
-    });
+    const others = faces.filter(f => f !== mainFace);
+    const keep = new Uint8Array(N);
+    let peopleCount = 0;
 
-    if (!targets.length) {
+    if (hasFaces && others.length) {
+      for (const f of others) {
+        const halfW = Math.max(2, f.w * 1.9);
+        const x0 = Math.max(0, Math.floor((f.cx - halfW) * mw));
+        const x1 = Math.min(mw - 1, Math.ceil((f.cx + halfW) * mw));
+        const y0 = Math.max(0, Math.floor((f.cy - f.h * 0.8) * mh));
+        const y1 = Math.min(mh - 1, Math.ceil((f.cy + Math.max(f.w * 3.6, f.h * 2.4)) * mh));
+        let hits = 0;
+        for (let y = y0; y <= y1; y++) {
+          for (let x = x0; x <= x1; x++) {
+            const i = y * mw + x;
+            if (on[i]) { keep[i] = 1; hits++; }
+          }
+        }
+        // 인물 마스크가 그 띠에서 거의 비어 있으면 얼굴 아래를 타원으로 채운다
+        const band = (x1 - x0 + 1) * (y1 - y0 + 1);
+        if (hits < band * 0.02) {
+          const cxp = f.cx * mw, cyp = (f.cy + f.h * 1.15) * mh;
+          const rx = halfW * mw * 0.92;
+          const ry = Math.max(f.w * 2.2, f.h * 1.7) * mh;
+          for (let y = y0; y <= y1; y++) {
+            for (let x = x0; x <= x1; x++) {
+              const dx = (x - cxp) / Math.max(1, rx), dy = (y - cyp) / Math.max(1, ry);
+              if (dx * dx + dy * dy < 1) keep[y * mw + x] = 1;
+            }
+          }
+        }
+        peopleCount++;
+      }
+    } else if (!hasFaces) {
+      // 얼굴을 못 찾은 사진: 가장 큰 덩어리를 중심 인물로 보고 나머지 큰 덩어리를 지운다
+      const targets = comps.filter(cp =>
+        cp.id !== mainId && cp.area < N * 0.45 &&
+        cp.area > Math.max(N * 0.0025, mainComp.area * 0.05)
+      );
+      if (!targets.length) {
+        return { note: '중심 인물 말고는 지울 만한 다른 사람을 찾지 못했습니다. 브러시로 직접 칠해 주세요.' };
+      }
+      const tset = new Set(targets.map(t => t.id));
+      for (let i = 0; i < N; i++) if (label[i] >= 0 && tset.has(label[i])) keep[i] = 1;
+      peopleCount = targets.length;
+    } else {
       return { note: '중심 인물 말고는 지울 만한 다른 사람을 찾지 못했습니다. 브러시로 직접 칠해 주세요.' };
     }
 
-    // 마스크 그리기 (조금 부풀려서)
-    const out = makeCanvas(mw, mh);
-    const octx = out.getContext('2d');
-    const img = octx.createImageData(mw, mh);
-    const keep = new Uint8Array(N);
-    for (let i = 0; i < N; i++) {
-      const id = label[i];
-      keep[i] = id >= 0 && targets.some(t => t.id === id) ? 1 : 0;
-    }
     // 1px 팽창
     for (let y = 0; y < mh; y++) {
       for (let x = 0; x < mw; x++) {
@@ -401,11 +430,9 @@ export function initEraser(hooks) {
     sctx.drawImage(out, 0, 0);
     sctx.filter = 'none';
 
-    const people = targets.length;
-    const faceCount = faces.filter(f => f !== mainFace).length;
     return {
       canvas: soft,
-      note: `주변 인물 ${people}덩어리${faceCount ? ` · 얼굴 ${faceCount}명` : ''} 감지 · 필요하면 브러시로 더 칠하세요`
+      note: `주변 인물 ${peopleCount}명 감지 · 필요하면 브러시로 더 칠하세요`
     };
   }
 
