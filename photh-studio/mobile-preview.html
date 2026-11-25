@@ -17,8 +17,19 @@
     const d = f.contentDocument;
     const click = sel => { const el = d.querySelector(sel); if (el) el.click(); };
     setTimeout(() => click('#btnSampleEmpty'), 600);
-    setTimeout(() => click('.film-item[title="field_portrait.jpg"]'), 6500);
-    setTimeout(() => click('.mnav[data-mnav="retouch"]'), 7500);
+    setTimeout(() => {
+      click('.film-item[title="field_portrait.jpg"]');
+    }, 6500);
+    setTimeout(() => {
+      const set = (key, v) => {
+        const inp = d.querySelector('.slider[data-key="' + key + '"] input');
+        if (!inp) return;
+        inp.value = v;
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      set('bokeh', 100); set('bokehLight', 65); set('smooth', 40);
+      click('.mnav[data-mnav="retouch"]');
+    }, 9000);
   });
 </script>
 </body>

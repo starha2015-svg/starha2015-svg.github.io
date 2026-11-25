@@ -343,7 +343,6 @@ select{
 /* ── responsive ─────────────────────────────────────── */
 @media (max-width:1120px){
   .workspace{grid-template-columns:228px minmax(0,1fr) 290px}
-  .brand-sub{display:none}
 }
 @media (max-width:900px){
   :root{--topbar-h:52px; --film-h:84px}
