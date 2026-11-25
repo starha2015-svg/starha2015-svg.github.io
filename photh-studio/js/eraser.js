@@ -355,11 +355,14 @@ export function initEraser(hooks) {
     if (mainFace && mainFace.comp < 0) mainId = comps[0].id;
     const mainComp = comps.find(cp => cp.id === mainId) || comps[0];
 
+    // 얼굴이 검출된 사진에서는 '얼굴이 있는 다른 덩어리'만 지운다 (번짐·그림자 오검출 방지)
+    const hasFaces = faces.length > 0;
     const targets = comps.filter(cp => {
       if (cp.id === mainId) return false;
-      const bigEnough = cp.area > Math.max(N * 0.0025, mainComp.area * 0.05);
-      const hasFace = faces.some(f => f.comp === cp.id && f !== mainFace);
-      return bigEnough || hasFace;
+      if (cp.area > N * 0.45) return false;
+      const faceHere = faces.some(f => f.comp === cp.id && f !== mainFace);
+      if (hasFaces) return faceHere;
+      return cp.area > Math.max(N * 0.0025, mainComp.area * 0.05);
     });
 
     if (!targets.length) {
