@@ -105,7 +105,7 @@ void main(){
   vec3 glow = texture(uGlow, vUv).rgb;
   float gl = max(glow.r, max(glow.g, glow.b));
   float orb = smoothstep(0.035, 0.26, gl);
-  bgc += glow * orb * uLight * (0.55 + 0.75 * amt);
+  bgc += glow * orb * uLight * (0.40 + 0.60 * amt);
 
   outColor = vec4(clamp(mix(sharp, bgc, bg), 0.0, 1.0), 1.0);
 }

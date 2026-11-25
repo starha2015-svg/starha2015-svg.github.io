@@ -103,7 +103,7 @@ export function buildBokehCanvases(source, w, h, personMask) {
     return { blur, glow: null };
   }
   const px = data.data;
-  const t0 = 0.60, t1 = 0.95;
+  const t0 = 0.66, t1 = 0.99;
   for (let i = 0; i < px.length; i += 4) {
     const r = px[i] / 255, g = px[i + 1] / 255, b = px[i + 2] / 255;
     const l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -111,7 +111,7 @@ export function buildBokehCanvases(source, w, h, personMask) {
     k = k <= 0 ? 0 : k >= 1 ? 1 : k;
     k = k * k * (3 - 2 * k);
     if (maskData) k *= 1 - Math.min(1, maskData[i + 3] / 255);
-    const boost = 1 + 1.35 * k;
+    const boost = 1 + 1.0 * k;
     px[i] = Math.min(255, px[i] * k * boost);
     px[i + 1] = Math.min(255, px[i + 1] * k * boost);
     px[i + 2] = Math.min(255, px[i + 2] * k * boost);
