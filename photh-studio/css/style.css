@@ -338,7 +338,7 @@ select{
 
 /* mobile nav + sheets */
 .mobile-nav{display:none}
-.sheet-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:60; backdrop-filter:blur(2px)}
+.sheet-backdrop{position:fixed; inset:0; background:rgba(6,8,12,.42); z-index:60; backdrop-filter:blur(1.5px)}
 
 /* ── responsive ─────────────────────────────────────── */
 @media (max-width:1120px){
