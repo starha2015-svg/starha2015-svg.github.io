@@ -404,8 +404,6 @@ export function initEraser(hooks) {
       const tset = new Set(targets.map(t => t.id));
       for (let i = 0; i < N; i++) if (label[i] >= 0 && tset.has(label[i])) keep[i] = 1;
       peopleCount = targets.length;
-    } else {
-      return { note: '중심 인물 말고는 지울 만한 다른 사람을 찾지 못했습니다. 브러시로 직접 칠해 주세요.' };
     }
 
     // 1px 팽창
