@@ -358,6 +358,11 @@ void main(){
   const float st = 0.0028;
   vec2 ox = vec2(st, 0.0), oy = vec2(0.0, st);
 
+  // 인물 가중치를 더 넓게 펴서 마스크 경계에 색 테두리가 생기지 않게 한다
+  float pBlur = 0.25 * (texture(uPerson, vUv + ox).r + texture(uPerson, vUv - ox).r
+                      + texture(uPerson, vUv + oy).r + texture(uPerson, vUv - oy).r);
+  person = clamp(mix(person, pBlur, 0.75), 0.0, 1.0);
+
   float hC = lumc(c) * 0.50 + face * 0.95 + person * 0.06;
   float hL = lumc(texture(uTex, vUv - ox).rgb) * 0.50 + texture(uFace, vUv - ox).r * 0.95 + texture(uPerson, vUv - ox).r * 0.06;
   float hR = lumc(texture(uTex, vUv + ox).rgb) * 0.50 + texture(uFace, vUv + ox).r * 0.95 + texture(uPerson, vUv + ox).r * 0.06;
@@ -398,13 +403,13 @@ void main(){
   float pD = texture(uPerson, vUv + vec2(0.0, o2.y)).r;
   float pU = texture(uPerson, vUv - vec2(0.0, o2.y)).r;
   vec2 pg = vec2(pR - pL, pD - pU);
-  float edge = smoothstep(0.010, 0.15, length(pg)) * person;
+  float edge = smoothstep(0.018, 0.20, length(pg)) * smoothstep(0.05, 0.55, person);
   vec2 outward = -normalize(pg + vec2(1e-5, 1e-5));
   vec2 l2 = normalize(vec2(L.x, L.y) + vec2(1e-5, 1e-5));
   float toward = sat(dot(outward, l2));
   float backAmt = 1.0 - sat(L.z);
-  float rim = edge * toward * clamp(uStrength, 0.0, 1.0) * (0.12 + 0.42 * backAmt);
-  c += uSunColor * rim * mix(0.85, 1.20, backAmt);
+  float rim = edge * toward * clamp(uStrength, 0.0, 1.0) * (0.10 + 0.34 * backAmt);
+  c += uSunColor * rim * mix(0.85, 1.15, backAmt);
 
   // 광원 위치에서 퍼지는 햇살 글로우 / 베일링 플레어
   vec2 dp = (vUv - uSunUV) * vec2(uAspect, 1.0);
