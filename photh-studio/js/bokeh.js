@@ -1,5 +1,6 @@
 /* 배경 보케 텍스처 생성 — 흐린 배경(base)과 하이라이트 빛망울(glow)을 만든다.
-   인물 마스크가 있으면 인물을 배경 블러/빛망울에서 빼서 인물 주변 번짐(할로)을 막는다. */
+   인물 마스크가 있으면 인물을 배경 블러/빛망울에서 완전히 빼고,
+   인물 자리는 주변 배경색으로 메워서 인물 주변 번짐(할로)을 없앤다. */
 
 function makeCanvas(w, h) {
   const c = document.createElement('canvas');
@@ -37,44 +38,51 @@ export function buildBokehCanvases(source, w, h, personMask) {
 
   const alphaMask = personMask ? toAlphaMask(personMask, sw, sh) : null;
 
-  /* ── 1) 부드러운 배경 ───────────────────────────────── */
-  const blur = makeCanvas(sw, sh);
-  const bctx = blur.getContext('2d');
-  bctx.imageSmoothingQuality = 'high';
-
-  // 1-a) 아주 부드러운 저주파 바탕 — 인물 자리를 메우는 용도
-  const softW = Math.max(8, Math.round(sw / 5));
-  const softH = Math.max(8, Math.round(sh / 5));
-  const soft = makeCanvas(softW, softH);
-  const sctx = soft.getContext('2d');
-  sctx.imageSmoothingQuality = 'high';
-  sctx.drawImage(source, 0, 0, softW, softH);
-  bctx.filter = `blur(${Math.max(1, sw * 0.075).toFixed(2)}px)`;
-  bctx.drawImage(soft, 0, 0, sw, sh);
-  bctx.filter = 'none';
-
-  // 1-b) 인물을 뺀 배경을 적당히 블러해 위에 얹기
-  const rBlur = Math.max(1.6, sw * 0.052);
-  let punched = null;
+  /* 인물을 뺀 원본 (마스크가 있으면) */
+  let base = source;
   if (alphaMask) {
-    punched = makeCanvas(sw, sh);
-    const pctx = punched.getContext('2d');
+    base = makeCanvas(sw, sh);
+    const pctx = base.getContext('2d');
     pctx.imageSmoothingQuality = 'high';
     pctx.drawImage(source, 0, 0, sw, sh);
     pctx.globalCompositeOperation = 'destination-out';
     pctx.drawImage(alphaMask, 0, 0, sw, sh);
     pctx.globalCompositeOperation = 'source-over';
   }
-  if (punched) {
-    bctx.filter = `blur(${rBlur.toFixed(2)}px)`;
-    bctx.drawImage(punched, 0, 0, sw, sh);
-    bctx.filter = 'none';
-  } else {
-    // 마스크가 없으면 원본을 그대로 블러
-    bctx.filter = `blur(${rBlur.toFixed(2)}px)`;
-    bctx.drawImage(source, 0, 0, sw, sh);
-    bctx.filter = 'none';
-  }
+
+  /* ── 1) 부드러운 배경 ───────────────────────────────── */
+  const blur = makeCanvas(sw, sh);
+  const bctx = blur.getContext('2d');
+  bctx.imageSmoothingQuality = 'high';
+
+  // 1-a) 바탕을 평균 색으로 채워 구멍에서 검은 테가 생기지 않게 한다
+  let avg = [160, 160, 160];
+  try {
+    const one = makeCanvas(1, 1);
+    const octx = one.getContext('2d', { willReadFrequently: true });
+    octx.drawImage(source, 0, 0, 1, 1);
+    const d = octx.getImageData(0, 0, 1, 1).data;
+    avg = [d[0], d[1], d[2]];
+  } catch (e) { /* 평균색 계산 실패 시 중간 회색 */ }
+  bctx.fillStyle = `rgb(${avg[0]},${avg[1]},${avg[2]})`;
+  bctx.fillRect(0, 0, sw, sh);
+
+  // 1-b) 아주 부드러운 저주파 레이어 (인물이 빠진 상태에서)
+  const softW = Math.max(8, Math.round(sw / 5));
+  const softH = Math.max(8, Math.round(sh / 5));
+  const soft = makeCanvas(softW, softH);
+  const sctx = soft.getContext('2d');
+  sctx.imageSmoothingQuality = 'high';
+  sctx.drawImage(base, 0, 0, softW, softH);
+  bctx.filter = `blur(${Math.max(1, sw * 0.075).toFixed(2)}px)`;
+  bctx.drawImage(soft, 0, 0, sw, sh);
+  bctx.filter = 'none';
+
+  // 1-c) 배경 디테일을 적당히 블러해 위에 얹기
+  const rBlur = Math.max(1.6, sw * 0.052);
+  bctx.filter = `blur(${rBlur.toFixed(2)}px)`;
+  bctx.drawImage(base, 0, 0, sw, sh);
+  bctx.filter = 'none';
 
   /* ── 2) 하이라이트 빛망울 ───────────────────────────── */
   const hi = makeCanvas(sw, sh);
