@@ -1,7 +1,7 @@
-import { PRESETS, PRESET_BY_ID, blendLook } from './presets.js?v=18';
-import { Renderer } from './gl.js?v=18';
-import { buildBokehCanvases } from './bokeh.js?v=18';
-import { imageStats, estimateAdjust, fmtEV, fmtSigned } from './color.js?v=18';
+import { PRESETS, PRESET_BY_ID, blendLook } from './presets.js?v=22';
+import { Renderer } from './gl.js?v=22';
+import { buildBokehCanvases } from './bokeh.js?v=22';
+import { imageStats, estimateAdjust, fmtEV, fmtSigned } from './color.js?v=22';
 import { buildFallbackMasks, analyzePortrait } from './ai.js?v=22';
 import { estimateTilt } from './level.js?v=22';
 
