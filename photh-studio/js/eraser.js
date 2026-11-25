@@ -386,8 +386,9 @@ export function initEraser(hooks) {
           else if (y > 0 && keep[i - mw]) v = 1;
           else if (y < mh - 1 && keep[i + mw]) v = 1;
         }
-        const b = v ? 255 : 0;
-        img.data[i * 4] = b; img.data[i * 4 + 1] = b; img.data[i * 4 + 2] = b; img.data[i * 4 + 3] = 255;
+        // 흰색 + 알파(마스크 밖은 투명) — 오버레이·합성에서 배경을 덮지 않게
+        img.data[i * 4] = 255; img.data[i * 4 + 1] = 255; img.data[i * 4 + 2] = 255;
+        img.data[i * 4 + 3] = v ? 255 : 0;
       }
     }
     octx.putImageData(img, 0, 0);

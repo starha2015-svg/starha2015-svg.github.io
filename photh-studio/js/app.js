@@ -1,10 +1,10 @@
-import { PRESETS, PRESET_BY_ID, blendLook } from './presets.js?v=26';
-import { Renderer } from './gl.js?v=26';
-import { buildBokehCanvases } from './bokeh.js?v=26';
-import { imageStats, estimateAdjust, fmtEV, fmtSigned } from './color.js?v=26';
-import { buildFallbackMasks, analyzePortrait } from './ai.js?v=26';
-import { estimateTilt } from './level.js?v=26';
-import { initEraser } from './eraser.js?v=26';
+import { PRESETS, PRESET_BY_ID, blendLook } from './presets.js?v=27';
+import { Renderer } from './gl.js?v=27';
+import { buildBokehCanvases } from './bokeh.js?v=27';
+import { imageStats, estimateAdjust, fmtEV, fmtSigned } from './color.js?v=27';
+import { buildFallbackMasks, analyzePortrait } from './ai.js?v=27';
+import { estimateTilt } from './level.js?v=27';
+import { initEraser } from './eraser.js?v=27';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));

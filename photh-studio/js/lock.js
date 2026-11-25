@@ -5,7 +5,7 @@ const PASSWORD_HASH = '43c060b3a59032e0e8e3aa68cb60211a26523ed118263b8814d5bf70e
 const SESSION_KEY = 'photh.unlock';
 const REMEMBER_KEY = 'photh.unlock.remember';
 const TOKEN = 'ok:' + PASSWORD_HASH.slice(0, 20);
-const APP_URL = './app.js?v=26';
+const APP_URL = './app.js?v=27';
 
 const body = document.body;
 const form = document.getElementById('lockForm');
