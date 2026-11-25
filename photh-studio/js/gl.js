@@ -408,18 +408,18 @@ void main(){
   vec2 l2 = normalize(vec2(L.x, L.y) + vec2(1e-5, 1e-5));
   float toward = sat(dot(outward, l2));
   float backAmt = 1.0 - sat(L.z);
-  float rim = edge * toward * clamp(uStrength, 0.0, 1.0) * (0.10 + 0.34 * backAmt);
+  float rim = edge * toward * clamp(uStrength, 0.0, 1.0) * (0.14 + 0.46 * backAmt);
   c += uSunColor * rim * mix(0.85, 1.15, backAmt);
 
   // 광원 위치에서 퍼지는 햇살 글로우 / 베일링 플레어
   vec2 dp = (vUv - uSunUV) * vec2(uAspect, 1.0);
   float dd = length(dp);
-  float core = exp(-dd * dd / 0.0028);
-  float halo = exp(-dd * dd / 0.055);
-  float veil = exp(-dd / 0.45);
+  float core = exp(-dd * dd / 0.0060);
+  float halo = exp(-dd * dd / 0.090);
+  float veil = exp(-dd / 0.50);
   float gAmt = clamp(uGlow, 0.0, 1.0) * clamp(uStrength, 0.0, 1.0);
   float sunLum = smoothstep(0.30, 0.92, base);
-  c += uGlowColor * gAmt * (core * 0.50 * (0.35 + 0.65 * sunLum) + halo * 0.20 + veil * 0.05);
+  c += uGlowColor * gAmt * (core * 0.80 * (0.45 + 0.55 * sunLum) + halo * 0.28 + veil * 0.10);
 
   // 소프트 하이라이트 롤오프 — 밝기만 압축해 색이 파랗게 틀어지지 않게
   float cl = lumc(c);
