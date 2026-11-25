@@ -606,7 +606,16 @@ export function initEraser(hooks) {
 
       setStatus('결과를 사진에 합성하는 중…');
       const blob = await res.blob();
-      const full = await composeFull(item, blob);
+      let full = null;
+      try {
+        full = await composeFull(item, blob);
+      } catch (err) {
+        // 합성 실패 시: 결과 이미지를 그대로 사진으로 쓴다 (기능이 멈추지 않게)
+        console.warn('compose fallback', err);
+        const im = await loadImageFromBlob(blob);
+        full = makeCanvas(im.naturalWidth || im.width, im.naturalHeight || im.height);
+        full.getContext('2d').drawImage(im, 0, 0);
+      }
       applyErased(item, full);
       const secs = ((performance.now() - t0) / 1000).toFixed(1);
       setStatus(`지우기 완료 · ${secs}초 · 마음에 안 들면 [이전 상태로]`);
