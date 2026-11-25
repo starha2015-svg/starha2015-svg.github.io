@@ -109,7 +109,8 @@ export default {
       const res = await fetch(QUEUE_URL, { method: 'POST', headers: auth, body: JSON.stringify(input) });
       const text = await res.text();
       if (!res.ok) {
-        return json({ ok: false, error: 'fal_submit_failed', status: res.status, detail: text.slice(0, 400) }, 502, origin);
+        const low = /Exhausted balance|User is locked/i.test(text);
+        return json({ ok: false, error: low ? 'fal_no_credit' : 'fal_submit_failed', status: res.status, detail: text.slice(0, 400) }, 502, origin);
       }
       job = JSON.parse(text);
     } catch (e) {

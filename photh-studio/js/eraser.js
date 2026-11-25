@@ -539,6 +539,7 @@ export function initEraser(hooks) {
         try {
           const j = await res.json();
           if (j.error === 'unauthorized') msg = '프록시 인증이 맞지 않습니다. 잠금을 해제한 화면에서 다시 시도해 주세요.';
+          else if (j.error === 'fal_no_credit') msg = 'AI 지우개 크레딧이 아직 없습니다. fal.ai 잔액을 충전하면 바로 쓸 수 있어요.';
           else if (j.error === 'too_large') msg = '사진 용량이 너무 큽니다. 조금 작은 사진으로 시도해 주세요.';
           else if (j.error === 'fal_key_missing' || j.error === 'server_not_configured') msg = '프록시에 fal.ai 키가 아직 설정되지 않았습니다.';
           else if (j.error === 'timeout') msg = 'AI 응답이 너무 늦습니다. 잠시 후 다시 시도해 주세요.';
