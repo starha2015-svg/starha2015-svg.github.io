@@ -39,7 +39,7 @@ js/presets.js  프리셋 정의
 js/color.js    Lab 변환 · 색 통계 · 보정량 추정
 js/bokeh.js    배경 흐림 · 빛망울 텍스처 생성
 js/ai.js       MediaPipe 인물/피부 마스크 + 폴백
-assets/        샘플 사진, 아이콘
+assets/        샘플 사진(PHOTH @ph_ot_h 포트폴리오 3장), 아이콘, 공유 이미지
 ```
 
 ## 로컬에서 보기
