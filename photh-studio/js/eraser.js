@@ -314,8 +314,14 @@ export function initEraser(hooks) {
     try { data = cx2.getImageData(0, 0, mw, mh).data; } catch (err) { return { note: '마스크를 읽을 수 없습니다.' }; }
 
     const N = mw * mh;
+    // 강한 확신(>190) 픽셀로 덩어리를 잡고, 약한 확신(>110)은 테두리 확장에만 쓴다
     const on = new Uint8Array(N);
-    for (let i = 0; i < N; i++) on[i] = data[i * 4] > 110 ? 1 : 0;
+    const soft = new Uint8Array(N);
+    for (let i = 0; i < N; i++) {
+      const v = data[i * 4];
+      on[i] = v > 190 ? 1 : 0;
+      soft[i] = v > 110 ? 1 : 0;
+    }
 
     // 연결 요소 라벨링
     const label = new Int32Array(N).fill(-1);
@@ -404,6 +410,17 @@ export function initEraser(hooks) {
       const tset = new Set(targets.map(t => t.id));
       for (let i = 0; i < N; i++) if (label[i] >= 0 && tset.has(label[i])) keep[i] = 1;
       peopleCount = targets.length;
+    }
+
+    // 약한 확신 픽셀 중 '강한 영역'에 붙어 있는 것만 테두리로 포함 (번짐 차단)
+    for (let pass = 0; pass < 2; pass++) {
+      for (let y = 1; y < mh - 1; y++) {
+        for (let x = 1; x < mw - 1; x++) {
+          const i = y * mw + x;
+          if (keep[i] || !soft[i]) continue;
+          if (keep[i - 1] || keep[i + 1] || keep[i - mw] || keep[i + mw]) keep[i] = 1;
+        }
+      }
     }
 
     // 마스크 캔버스 (흰색 + 알파)
