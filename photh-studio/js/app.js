@@ -1,8 +1,8 @@
-import { PRESETS, PRESET_BY_ID, blendLook } from './presets.js?v=5';
-import { Renderer } from './gl.js?v=5';
-import { buildBokehCanvases } from './bokeh.js?v=5';
-import { imageStats, estimateAdjust, fmtEV, fmtSigned } from './color.js?v=5';
-import { buildFallbackMasks, analyzePortrait } from './ai.js?v=5';
+import { PRESETS, PRESET_BY_ID, blendLook } from './presets.js?v=6';
+import { Renderer } from './gl.js?v=6';
+import { buildBokehCanvases } from './bokeh.js?v=6';
+import { imageStats, estimateAdjust, fmtEV, fmtSigned } from './color.js?v=6';
+import { buildFallbackMasks, analyzePortrait } from './ai.js?v=6';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -379,7 +379,10 @@ function selectItem(id) {
   els.canvasInner.style.visibility = 'visible';
 
   if (!item.bokeh) {
-    try { item.bokeh = buildBokehCanvases(item.source, item.width, item.height); } catch (e) { item.bokeh = {}; }
+    try {
+      item.bokeh = buildBokehCanvases(item.source, item.width, item.height, (item.masks && item.masks.person) || null);
+      item.bokehMasked = !!(item.masks && item.masks.person);
+    } catch (e) { item.bokeh = {}; }
   }
   if (renderer) {
     renderer.setSource(item.source);
@@ -418,8 +421,13 @@ async function ensureAnalysis(item) {
   try {
     const res = await analyzePortrait(item.source, item.width, item.height);
     item.masks = { skin: res.skin, person: res.person, mode: 'ai', coverage: res.coverage, faces: res.faces };
+    try {
+      item.bokeh = buildBokehCanvases(item.source, item.width, item.height, res.person);
+      item.bokehMasked = true;
+    } catch (e) { /* 보케 텍스처는 기존 것 유지 */ }
     if (isActive(item) && renderer) {
       renderer.setMasks(item.masks);
+      renderer.setBokeh(item.bokeh || {});
       if (item.settings.retouch.smooth > 0 || item.settings.retouch.brighten > 0 || item.settings.retouch.bokeh > 0 || item.settings.retouch.bokehLight > 0) scheduleRender();
       updateAiStatus();
     }
@@ -605,7 +613,10 @@ async function renderFullBlob(item) {
   try {
     r.setSource(item.source);
     r.setMasks(item.masks || {});
-    if (!item.bokeh) item.bokeh = buildBokehCanvases(item.source, item.width, item.height);
+    if (!item.bokeh || (!item.bokehMasked && item.masks && item.masks.person)) {
+      item.bokeh = buildBokehCanvases(item.source, item.width, item.height, (item.masks && item.masks.person) || null);
+      item.bokehMasked = !!(item.masks && item.masks.person);
+    }
     r.setBokeh(item.bokeh || {});
     const maxTex = Math.min(r.maxTex || 4096, 10000);
     let w = item.width, h = item.height;
@@ -661,7 +672,10 @@ async function exportZip() {
       const it = state.items[i];
       setProgress(0.08 + (i / total) * 0.85, `${i + 1}/${total} · ${it.name} 처리 중…`);
       if (!it.analysisStarted) await ensureAnalysis(it);
-      if (!it.bokeh) it.bokeh = buildBokehCanvases(it.source, it.width, it.height);
+      if (!it.bokeh || (!it.bokehMasked && it.masks && it.masks.person)) {
+        it.bokeh = buildBokehCanvases(it.source, it.width, it.height, (it.masks && it.masks.person) || null);
+        it.bokehMasked = !!(it.masks && it.masks.person);
+      }
       const blob = await renderFullBlob(it);
       zip.file(fileNameFor(it), blob);
     }
