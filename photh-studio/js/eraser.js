@@ -391,8 +391,9 @@ export function initEraser(hooks) {
         }
         peopleCount++;
       }
-    } else if (!hasFaces) {
-      // 얼굴을 못 찾은 사진: 가장 큰 덩어리를 중심 인물로 보고 나머지 큰 덩어리를 지운다
+    } else {
+      // 얼굴이 하나뿐이거나 못 찾은 사진: 가장 큰(또는 중심 얼굴이 있는) 덩어리를 중심 인물로 보고
+      // 나머지 큰 덩어리를 지운다
       const targets = comps.filter(cp =>
         cp.id !== mainId && cp.area < N * 0.45 &&
         cp.area > Math.max(N * 0.0025, mainComp.area * 0.05)
