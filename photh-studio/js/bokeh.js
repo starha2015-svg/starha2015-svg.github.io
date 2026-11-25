@@ -67,7 +67,18 @@ export function buildBokehCanvases(source, w, h, personMask) {
   bctx.fillStyle = `rgb(${avg[0]},${avg[1]},${avg[2]})`;
   bctx.fillRect(0, 0, sw, sh);
 
-  // 1-b) 아주 부드러운 저주파 레이어 (인물이 빠진 상태에서)
+  // 1-b) 인물 구멍 가장자리를 주변 배경으로 메운다 (가장자리 확장)
+  if (alphaMask) {
+    const off = Math.max(2, Math.round(sw * 0.035));
+    bctx.globalAlpha = 0.55;
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      bctx.drawImage(base, Math.cos(a) * off, Math.sin(a) * off, sw, sh);
+    }
+    bctx.globalAlpha = 1;
+  }
+
+  // 1-c) 아주 부드러운 저주파 레이어 (인물이 빠진 상태에서)
   const softW = Math.max(8, Math.round(sw / 5));
   const softH = Math.max(8, Math.round(sh / 5));
   const soft = makeCanvas(softW, softH);
