@@ -6,6 +6,14 @@ out vec2 vUv;
 void main(){ vUv = aPos * 0.5 + 0.5; gl_Position = vec4(aPos, 0.0, 1.0); }
 `;
 
+/* 마지막 패스 전용: 텍스처 좌표를 상하 뒤집어 캔버스에 바로 그린다.
+   (ImageBitmap 업로드는 UNPACK_FLIP_Y_WEBGL을 무시하기 때문에 최종 단계에서만 뒤집는다) */
+const VERT_FLIP = `#version 300 es
+in vec2 aPos;
+out vec2 vUv;
+void main(){ vUv = vec2(aPos.x * 0.5 + 0.5, 0.5 - aPos.y * 0.5); gl_Position = vec4(aPos, 0.0, 1.0); }
+`;
+
 /* ── 1) 인물 리터칭: 피부 마스크 기반 에지 보존 스무딩 + 톤 업 ── */
 const FRAG_RETOUCH = `#version 300 es
 precision highp float;
@@ -308,11 +316,11 @@ export class Renderer {
     this.pRetouch = this._program(FRAG_RETOUCH);
     this.pBokeh = this._program(FRAG_BOKEH);
     this.pMatch = this._program(FRAG_MATCH);
-    this.pGrade = this._program(FRAG_GRADE);
+    this.pGrade = this._program(FRAG_GRADE, VERT_FLIP);
     this.tex = {};
     this.targets = null;
     this.size = [0, 0];
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     this._blank = this._solidTex(0);
     this._black = this._solidTex(0);
   }
@@ -338,10 +346,10 @@ export class Renderer {
     return s;
   }
 
-  _program(fragSrc) {
+  _program(fragSrc, vertSrc) {
     const gl = this.gl;
     const p = gl.createProgram();
-    gl.attachShader(p, this._shader(gl.VERTEX_SHADER, VERT));
+    gl.attachShader(p, this._shader(gl.VERTEX_SHADER, vertSrc || VERT));
     gl.attachShader(p, this._shader(gl.FRAGMENT_SHADER, fragSrc));
     gl.bindAttribLocation(p, 0, 'aPos');
     gl.linkProgram(p);

@@ -509,7 +509,11 @@ function bindSliders() {
     const key = el.dataset.key;
     const conf = SLIDERS[key];
     const input = el.querySelector('input[type=range]');
-    if (input) input.dataset.default = input.value;
+    if (input) {
+      input.dataset.default = input.value;
+      const lbl = el.querySelector('label');
+      if (lbl && !input.getAttribute('aria-label')) input.setAttribute('aria-label', lbl.textContent.trim());
+    }
     input.addEventListener('input', () => {
       const v = Number(input.value);
       const item = activeItem();
