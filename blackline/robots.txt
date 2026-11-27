@@ -1,0 +1,5 @@
+# BLACK LINE SECURITY — https://starha2015-svg.github.io/blackline/
+User-agent: *
+Allow: /
+
+Sitemap: https://starha2015-svg.github.io/blackline/sitemap.xml
