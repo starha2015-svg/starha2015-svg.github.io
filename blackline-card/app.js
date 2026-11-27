@@ -11,6 +11,7 @@
   var STORE = 'blackline.card.v1';
 
   var DEFAULTS = {
+    frontLogo: 'image',               // image | textsec | text
     company: 'BLACK LINE',
     name: '최성길',
     nameEn: 'CHOI SEONG GIL',
@@ -49,6 +50,39 @@
 
   var frontCanvas = document.getElementById('frontCanvas');
   var backCanvas = document.getElementById('backCanvas');
+
+  /* --------------------------------------------------- 새 로고 이미지 자산 */
+
+  var LOGO_SRC = 'assets/blackline-logo-ink.png?v=2';
+  var logoImg = null;          // 로드 완료된 이미지
+  var logoState = 'idle';      // idle | loading | ready | error
+  var logoPromise = null;
+
+  function loadLogo() {
+    if (logoPromise) return logoPromise;
+    logoState = 'loading';
+    logoPromise = new Promise(function (resolve, reject) {
+      var img = new Image();
+      img.onload = function () {
+        logoImg = img;
+        logoState = 'ready';
+        resolve(img);
+        drawAll();
+      };
+      img.onerror = function () {
+        logoState = 'error';
+        reject(new Error('로고 이미지 로드 실패'));
+        drawAll();
+      };
+      img.src = LOGO_SRC;
+    });
+    return logoPromise;
+  }
+
+  function logoForExport() {
+    if (data.frontLogo !== 'image') return Promise.resolve();
+    return loadLogo().catch(function () { /* 실패 시 텍스트 로고로 대체 */ });
+  }
 
   function hasCanvasSupport(cv) {
     return !!(cv && cv.getContext && cv.getContext('2d'));
@@ -181,17 +215,85 @@
 
   /* ------------------------------------------------------------- 앞면 */
 
-  function drawFront(ctx, u, v) {
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, CARD.w * u, CARD.h * v);
+  // 자간을 넣은 가운데 정렬 텍스트. 반환값: 그린 폭(mm)
+  function drawTracked(ctx, str, centerXmm, baselineMm, sizeMm, weight, trackMm, u, v) {
+    str = String(str || '');
+    if (!str.length) return 0;
+    ctx.font = weight + ' ' + (sizeMm * v) + 'px ' + FONT;
+    var widths = [];
+    var total = 0;
+    for (var i = 0; i < str.length; i++) {
+      var cw = ctx.measureText(str[i]).width;
+      widths.push(cw);
+      total += cw;
+    }
+    total += Math.max(0, str.length - 1) * trackMm * v;
 
-    // 상·하단 중앙 수직선
+    var x = centerXmm * u - total / 2;
+    ctx.fillStyle = INK;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    for (var j = 0; j < str.length; j++) {
+      ctx.fillText(str[j], x, baselineMm * v);
+      x += widths[j] + trackMm * v;
+    }
+    return total / v;
+  }
+
+  // 상·하단 중앙 수직선 (길이 mm)
+  function drawCenterLines(ctx, u, v, topLen, bottomLen) {
     var lw = Math.max(1, 0.5 * u);
     ctx.fillStyle = INK;
-    ctx.fillRect(45 * u - lw / 2, 0, lw, 15 * v);
-    ctx.fillRect(45 * u - lw / 2, 35 * v, lw, 15 * v);
+    ctx.fillRect(45 * u - lw / 2, 0, lw, topLen * v);
+    ctx.fillRect(45 * u - lw / 2, (CARD.h - bottomLen) * v, lw, bottomLen * v);
+  }
 
-    // 중앙 로고
+  // 1) 새 로고 — 색 반전한 BLACK LINE 컷아웃 로고 이미지
+  function drawFrontImage(ctx, u, v) {
+    var wmm = 66;
+    var hmm = wmm * (logoImg.height / logoImg.width);
+    var w = wmm * u;
+    var h = hmm * v;
+
+    var smooth = ctx.imageSmoothingEnabled;
+    var quality = ctx.imageSmoothingQuality;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(logoImg, (45 * u) - w / 2, (25 * v) - h / 2, w, h);
+    ctx.imageSmoothingEnabled = smooth;
+    ctx.imageSmoothingQuality = quality;
+    return true;
+  }
+
+  // 2) 기존 + SECURITY — 텍스트 로고 아래 넓은 자간의 SECURITY 서브텍스트
+  function drawFrontTextSec(ctx, u, v) {
+    drawCenterLines(ctx, u, v, 15.5, 15.5);
+
+    drawText(ctx, data.company, 45, 26.0, {
+      size: 6.2 / CAP,
+      weight: 700,
+      align: 'center',
+      maxW: 70,
+      color: INK
+    }, u, v);
+
+    var secCap = 1.85;
+    var secBase = 30.1;
+    var w = drawTracked(ctx, 'SECURITY', 45, secBase, secCap / CAP, 500, 0.78, u, v);
+
+    // 좌우 짧은 대시
+    var midY = secBase - secCap / 2;
+    var gap = 2.8;
+    var dashW = 5.4;
+    var dashH = 0.22;
+    ctx.fillStyle = INK;
+    ctx.fillRect((45 - w / 2 - gap - dashW) * u, (midY - dashH / 2) * v, dashW * u, dashH * v);
+    ctx.fillRect((45 + w / 2 + gap) * u, (midY - dashH / 2) * v, dashW * u, dashH * v);
+  }
+
+  // 3) 기존 — 원래 명함의 BLACK LINE 텍스트 로고
+  function drawFrontText(ctx, u, v) {
+    drawCenterLines(ctx, u, v, 15, 15);
     drawText(ctx, data.company, 45, 25 + 7.35 / 2, {
       size: 7.35 / CAP,
       weight: 700,
@@ -199,6 +301,24 @@
       maxW: 78,
       color: INK
     }, u, v);
+  }
+
+  function drawFront(ctx, u, v) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, CARD.w * u, CARD.h * v);
+
+    var style = data.frontLogo || 'image';
+    if (style === 'image' && logoState === 'ready' && logoImg) {
+      drawCenterLines(ctx, u, v, 13.5, 13.5);
+      drawFrontImage(ctx, u, v);
+    } else if (style === 'image') {
+      // 이미지가 아직 준비되지 않았으면 같은 자리에 텍스트로 임시 표시
+      drawFrontText(ctx, u, v);
+    } else if (style === 'textsec') {
+      drawFrontTextSec(ctx, u, v);
+    } else {
+      drawFrontText(ctx, u, v);
+    }
   }
 
   /* ------------------------------------------------------------- 뒷면 */
@@ -363,11 +483,13 @@
   }
 
   function exportPNG(side) {
-    var cv = renderCard(side, DPI_W(300), DPI_H(300));
-    var label = side === 'front' ? '앞면' : '뒷면';
-    var fname = 'BLACKLINE_' + safeName() + '_' + label + '_300dpi.png';
-    return downloadCanvas(cv, fname).then(function () {
-      toast(label + ' PNG를 저장했습니다');
+    return (side === 'front' ? logoForExport() : Promise.resolve()).then(function () {
+      var cv = renderCard(side, DPI_W(300), DPI_H(300));
+      var label = side === 'front' ? '앞면' : '뒷면';
+      var fname = 'BLACKLINE_' + safeName() + '_' + label + '_300dpi.png';
+      return downloadCanvas(cv, fname).then(function () {
+        toast(label + ' PNG를 저장했습니다');
+      });
     });
   }
 
@@ -376,6 +498,10 @@
       toast('PDF 모듈을 불러오지 못했습니다');
       return Promise.resolve();
     }
+    return logoForExport().then(renderPDF);
+  }
+
+  function renderPDF() {
     var dpi = 600;
     var front = renderCard('front', DPI_W(dpi), DPI_H(dpi));
     var back = renderCard('back', DPI_W(dpi), DPI_H(dpi));
@@ -422,6 +548,38 @@
     var chips = document.querySelectorAll('#roleChips .chip');
     for (var i = 0; i < chips.length; i++) {
       chips[i].classList.toggle('on', chips[i].dataset.role === data.role);
+    }
+    syncLogoChips();
+  }
+
+  function syncLogoChips() {
+    var cur = data.frontLogo || 'image';
+    var chips = document.querySelectorAll('#logoChips .chip');
+    for (var i = 0; i < chips.length; i++) {
+      chips[i].classList.toggle('on', chips[i].dataset.logo === cur);
+    }
+    var dim = document.getElementById('companyDim');
+    if (dim) dim.textContent = cur === 'image' ? '(뒷면 로고)' : '(로고 문구)';
+    var hint = document.getElementById('logoHint');
+    if (hint) {
+      hint.textContent = cur === 'image'
+        ? '반전한 BLACK LINE 컷아웃 로고 이미지를 앞면 가운데에 넣습니다. 회사명 글자는 뒷면에 쓰입니다.'
+        : (cur === 'textsec'
+          ? 'BLACK LINE 텍스트 아래에 넓은 자간의 SECURITY 서브텍스트를 넣습니다.'
+          : '원래 앞면처럼 BLACK LINE 텍스트 로고만 넣습니다.');
+    }
+  }
+
+  function bindLogoChips() {
+    var chips = document.querySelectorAll('#logoChips .chip');
+    for (var i = 0; i < chips.length; i++) {
+      chips[i].addEventListener('click', function () {
+        data.frontLogo = this.dataset.logo;
+        saveStore();
+        syncLogoChips();
+        scheduleDraw();
+        if (data.frontLogo === 'image' && logoState !== 'ready') loadLogo().catch(function () {});
+      });
     }
   }
 
@@ -556,9 +714,11 @@
   function init() {
     bindInputs();
     bindChips();
+    bindLogoChips();
     bindExports();
     bindReset();
     syncChips();
+    loadLogo().catch(function () {});
     drawAll();
     whenFonts();
 
