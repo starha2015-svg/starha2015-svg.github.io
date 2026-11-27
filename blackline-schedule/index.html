@@ -331,7 +331,8 @@ function weekLayout(days){
 var MAXLANE=4;   /* 한 주에 위아래로 쌓아 보여줄 최대 줄 수 */
 function barLabel(e,days,contL){
   var h="";
-  if(isMulti(e))h+='<span class="br">'+(contL?"↳ ":esc(shortRange(e)))+"</span>";
+  /* 다일 일정 막대에는 날짜를 붙이지 않고 행사 이름만 보여준다. 주가 바뀌어 이어지는 칸만 ↳ 표시. */
+  if(isMulti(e)){if(contL)h+='<span class="br">↳</span>';}
   else if(e.start)h+='<span class="bs">'+esc(e.start)+"</span>";
   h+='<span class="bt">'+esc(e.title)+"</span>";
   return h;
@@ -373,7 +374,7 @@ function rCal(){
       b.style.gridColumn=(it.c0+1)+" / span "+(it.c1-it.c0+1);
       b.style.gridRow=String(it.lane+1);
       b.dataset.id=e.id;b.dataset.day=days[it.c0];
-      b.title=(md?shortRange(e)+" ":(e.start?e.start+" ":""))+e.title+(md?" · "+rangeLabel(e)+" ("+daysOf(e)+"일)":"");
+      b.title=(md?"":(e.start?e.start+" ":""))+e.title+(md?" ("+daysOf(e)+"일)":"");
       b.innerHTML=barLabel(e,days,contL);
       lay.appendChild(b);
     });
