@@ -19,7 +19,7 @@ QR 코드는 입력한 주소·내용으로 그때그때 새로 만들어집니�
 - `app.js` — 명함 렌더링(Canvas)·QR 생성·PNG/PDF 내보내기
 - `vendor/qrcode.js` — QR 생성 (qrcode-generator, MIT)
 - `vendor/jspdf.umd.min.js` — PDF 생성 (jsPDF, MIT)
-- `fonts/PretendardVariable.woff2` — 본문·로고 서체 (Pretendard, SIL OFL 1.1)
+- `fonts/Pretendard-Regular.woff2` · `Pretendard-Medium.woff2` · `Pretendard-Bold.woff2` — 본문·로고 서체 (Pretendard, SIL OFL 1.1)
 
 ## 인쇄 메모
 
