@@ -383,11 +383,10 @@
       badge.className = 'badge-soft' + (r.eligible ? '' : ' off');
     }
 
-    var formula = '1일 평균임금 ' + won(r.applied) + ' × 30일 × (' + numStr(r.serviceDays, 0) + '일 ÷ 365)'
-      + '<span class="fx">= 세전 ' + won(r.amount) + '</span>';
-    if (!r.eligible) {
-      formula += '<span class="fx">1년을 채우면 약 ' + won(r.refAmount) + '</span>';
-    }
+    var formula = '1일 평균임금 ' + won(r.applied) + ' × 30일 × (' + numStr(r.serviceDays, 0) + '일 ÷ 365)';
+    formula += r.eligible
+      ? '<span class="fx">= 세전 ' + won(r.amount) + '</span>'
+      : '<span class="fx">→ 대상 아님 · 1년을 채우면 약 ' + won(r.refAmount) + '</span>';
     setHTML('s-formula', formula);
 
     /* 항목 */
