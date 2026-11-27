@@ -21,12 +21,15 @@
 
 ## 이미지
 
-- `assets/field-01~03.jpg` — 기존 공식 사이트(blackline-security.co.kr)의 현장 사진
-- `assets/hero.jpg`, `event.jpg`, `metal.jpg` — AI 생성 배경 이미지(분위기용, 현장 기록 아님)
-- `assets/og-image.jpg` — 검색·SNS 공유 썸네일
+- `assets/hero.jpg` — 히어로 대표 이미지(AI 생성). 야간 호텔 앞, 인이어로 교신하는 수행 경호원
+- `assets/vip.jpg`, `venue.jpg`, `briefing.jpg` — `FIELD RECORD`의 `대표 비주얼` 탭 3장(AI 생성)
+- `assets/team.jpg` — 회사소개 섹션 이미지(AI 생성)
+- `assets/event.jpg`, `metal.jpg` — 행사·미션 밴드 배경(AI 생성)
+- `assets/field-01~03.jpg` — 기존 공식 사이트(blackline-security.co.kr)의 실제 현장 사진. 메인에는 쓰지 않고 `FIELD RECORD`의 `현장사진` 탭/라이트박스에서만 노출
+- `assets/og-image.jpg` — 검색·SNS 공유 썸네일(hero.jpg에서 크롭)
 
 ## 수정할 때
 
 - 연락처·주소는 `index.html`과 `privacy.html`에서 문자열 검색으로 바꿉니다.
 - 사업자등록번호·경비업 허가번호를 넣으려면 `index.html`의 푸터 `.f-legal`에 덧붙입니다.
-- 새 사진은 `assets/`에 넣고 `.gal-img img`의 `src`를 바꿉니다.
+- 새 사진은 `assets/`에 넣고 해당 `img`의 `src`와, 라이트박스용 `button.gal-zoom`의 `data-lb-src`를 함께 바꿉니다.
