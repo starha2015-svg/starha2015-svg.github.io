@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<title>퇴직금·실업급여 계산기 | 2026 1일 평균임금·구직급여 상한 하한</title>
+<meta name="description" content="입사일·퇴직일과 급여만 넣으면 2026년 기준 퇴직금(1일 평균임금 × 30일)과 실업급여(1일 66,048~68,100원)를 바로 계산해요. 상여금·연차수당 3/12 반영, 소정급여일수 120~270일, 퇴직소득세·IRP 안내까지 무료.">
+<meta name="keywords" content="퇴직금 계산기, 실업급여 계산기, 2026 실업급여, 1일 평균임금, 퇴직금 계산법, 구직급여 상한액 하한액, 소정급여일수, 퇴직소득세, IRP, 상여금 3/12">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="author" content="자취생 생활 계산기">
+<meta name="theme-color" content="#0B2545">
+<link rel="canonical" href="https://starha2015-svg.github.io/severance-unemployment.html">
+
+<!-- 애드센스 사이트 소유 확인용 (도메인 심사 시 자동 사용) -->
+<meta name="google-adsense-account" content="ca-pub-7244796149686919">
+
+<!-- Open Graph / SNS 공유 -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="자취생 생활 계산기">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="퇴직금·실업급여 계산기 (2026년 기준)">
+<meta property="og:description" content="그만둘 때 받는 퇴직금, 쉬는 동안 나오는 실업급여. 입사일·퇴직일과 월급만 넣으면 1일 평균임금부터 총 수령액까지 바로 나와요.">
+<meta property="og:url" content="https://starha2015-svg.github.io/severance-unemployment.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="퇴직금·실업급여 계산기 (2026년 기준)">
+<meta name="twitter:description" content="상여금·연차수당 3/12 반영 퇴직금 · 실업급여 상한 68,100원/하한 66,048원 · 소정급여일수까지 무료 계산.">
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+
+<!-- 애드센스 공통 스크립트 -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7244796149686919" crossorigin="anonymous"></script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "퇴직금·실업급여 계산기",
+      "url": "https://starha2015-svg.github.io/severance-unemployment.html",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "All",
+      "inLanguage": "ko-KR",
+      "description": "퇴직 전 3개월 임금과 상여금·연차수당을 반영해 1일 평균임금과 세전 퇴직금을 계산하고, 2026년 기준 실업급여(구직급여) 1일 상한·하한액과 소정급여일수로 총 예상 수령액을 계산합니다.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" },
+      "featureList": [
+        "1일 평균임금·세전 퇴직금 계산 (상여금·연차수당 3/12 반영)",
+        "1년·주 15시간 요건 자동 판정",
+        "예상 퇴직소득세와 IRP 과세이연 안내",
+        "2026년 실업급여 1일 상한 68,100원·하한 66,048원 적용",
+        "가입기간·연령별 소정급여일수 120~270일"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "1년을 하루 못 채우고 그만두면 퇴직금이 아예 없나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "네, 계속근로기간이 1년 미만이면 법정 퇴직금은 나오지 않습니다. 수습기간이나 계약 갱신으로 끊긴 것처럼 보여도 실제로 계속 일했다면 처음 입사일부터 세므로, 그 경우 1년을 넘길 수 있습니다. 회사가 1년 미만 근로자에게 퇴직금을 주는 것은 법정 의무가 아니라 회사 규정에 따릅니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "퇴직금은 언제까지 받고, IRP로 받으면 세금이 어떻게 되나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "퇴직금은 퇴직일부터 14일 안에 지급해야 하고, 당사자 합의로 기일을 미룰 수 있습니다. 2022년부터는 300만 원을 넘는 퇴직금을 IRP 계좌로 받는 것이 원칙이라, IRP로 옮기면 퇴직소득세를 떼지 않고 미뤘다가(과세이연) 55세 이후 연금으로 받을 때 퇴직소득세의 70%(10년 초과 60%, 20년 초과 50%)만 냅니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "실업급여는 월급이 적어도 하루 66,048원을 받나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "하한액은 최저임금의 80%에 1일 소정근로시간을 곱한 금액이라, 하루 8시간 기준 2026년에는 66,048원입니다. 퇴직 전 3개월 평균임금이 하루 110,080원(월 약 335만 원)보다 낮으면 계산한 60% 금액이 이보다 적어서 하한액으로 올려 받습니다. 반대로 평균임금이 아주 높으면 상한액 68,100원에서 잘립니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "자진퇴사면 실업급여를 못 받나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "원칙적으로는 내 사정으로 그만두면 받을 수 없고, 권고사직·계약기간 만료·정리해고처럼 회사 사정으로 그만둔 경우에 받습니다. 다만 임금 체불, 최저임금 미달, 직장 내 괴롭힘, 통근 불가, 간병·육아, 건강 악화처럼 부득이한 사유가 있으면 자진퇴사도 인정될 수 있어 이직확인서와 증빙을 준비해야 합니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "실업급여 받는 중에 새 직장에 들어가면 어떻게 되나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "취업하면 실업급여는 그날부터 지급이 중단됩니다. 다만 소정급여일수의 절반 이상을 남기고 재취업했거나 조기 재취업한 뒤 12개월 이상 고용이 유지되면, 남은 급여의 절반을 조기재취업수당으로 한 번에 받을 수 있습니다. 새 직장에 들어가기 전에 고용센터에 반드시 신고해야 부정수급 문제가 생기지 않습니다."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">무료 · 회원가입 없음 · 2026년 기준</p>
+    <h1>퇴직금·실업급여 <span class="hl">한 번에</span> 계산기</h1>
+    <p class="hero-sub">
+      그만둘 때 받는 <b>퇴직금</b>, 회사 사이에 쉬는 동안 나오는 <b>실업급여</b>.<br>
+      입사일·퇴직일이랑 급여만 넣으면 바로 나와요.
+    </p>
+    <div class="hero-meta">
+      <span>1일 평균임금 자동</span>
+      <span>2026 상한·하한 반영</span>
+      <span>퇴직소득세·IRP 안내</span>
+    </div>
+
+    <nav class="toolnav on-dark" aria-label="계산기 도구 이동">
+      <span class="tn-label">계산기</span>
+      <a href="./">월세·전세 실부담</a>
+      <a href="weekly-allowance.html">알바 주휴수당</a>
+      <a href="severance-unemployment.html" aria-current="page">퇴직금·실업급여</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap toolbar">
+  <div class="tabs" role="tablist" aria-label="계산기 종류">
+    <button type="button" class="tab" role="tab" id="tab-sev" aria-selected="true" aria-controls="panel-sev" data-tabbtn="sev">
+      <span class="tab-no">1</span> 퇴직금
+    </button>
+    <button type="button" class="tab" role="tab" id="tab-ben" aria-selected="false" aria-controls="panel-ben" data-tabbtn="ben">
+      <span class="tab-no">2</span> 실업급여
+    </button>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- [애드센스] 도메인 확정 후 이 위치에 상단 광고 단위 코드 삽입 -->
+  <div class="ad-slot" aria-hidden="true"></div>
+
+  <!-- ============================ 퇴직금 ============================ -->
+  <section class="panel" id="panel-sev" role="tabpanel" aria-labelledby="tab-sev" data-tabpanel="sev">
+    <div class="grid">
+
+      <div class="col-inputs">
+
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title"><span class="n">1</span> 근무 기간</h2>
+            <span class="card-hint">계약서 기준</span>
+          </div>
+          <div class="fields two">
+            <label class="field">
+              <span class="field-label">입사일</span>
+              <span class="input-wrap date">
+                <input id="s-start" type="date" aria-label="입사일">
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">퇴직일</span>
+              <span class="input-wrap date">
+                <input id="s-end" type="date" aria-label="퇴직일">
+              </span>
+            </label>
+          </div>
+          <p class="card-hint mt-10">퇴직일은 <b>마지막 근무일 다음 날</b>이에요. 9월 30일까지 일했다면 10월 1일을 넣으세요.</p>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title"><span class="n">2</span> 퇴직 전 3개월 급여</h2>
+            <span class="card-hint">세전 금액</span>
+          </div>
+
+          <div class="row-between">
+            <div class="seg" role="group" aria-label="급여 입력 방식">
+              <button type="button" class="seg-btn is-on" data-spmode="month">월급으로</button>
+              <button type="button" class="seg-btn" data-spmode="total">3개월 총액으로</button>
+            </div>
+            <span class="card-hint">기본급 + 고정수당</span>
+          </div>
+
+          <div class="mt-10" id="s-monthly-field">
+            <label class="field">
+              <span class="field-label">한 달 세전 급여</span>
+              <span class="input-wrap">
+                <input id="s-monthly" type="text" inputmode="decimal" autocomplete="off" value="3,000,000" aria-describedby="s-pay-help">
+                <span class="unit">원</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="mt-10" id="s-total3-field" hidden>
+            <label class="field">
+              <span class="field-label">퇴직 전 3개월 임금 총액</span>
+              <span class="input-wrap">
+                <input id="s-total3" type="text" inputmode="decimal" autocomplete="off" value="9,000,000">
+                <span class="unit">원</span>
+              </span>
+            </label>
+          </div>
+          <p class="card-hint mt-10" id="s-pay-help">매달 똑같이 받았다면 월급 × 3으로 계산해요. 야근·휴일수당이 달랐다면 급여명세서 3장을 더한 금액을 직접 넣는 게 정확해요.</p>
+
+          <div class="fields two mt-14">
+            <label class="field">
+              <span class="field-label">연간 상여금 총액 <span class="tag">3/12</span></span>
+              <span class="input-wrap">
+                <input id="s-bonus" type="text" inputmode="decimal" autocomplete="off" value="0">
+                <span class="unit">원</span>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">이미 받은 연차수당 <span class="tag">3/12</span></span>
+              <span class="input-wrap">
+                <input id="s-leave" type="text" inputmode="decimal" autocomplete="off" value="0">
+                <span class="unit">원</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="mt-14">
+            <label class="field">
+              <span class="field-label">1일 통상임금 <span class="tag">선택</span></span>
+              <span class="input-wrap">
+                <input id="s-ordinary" type="text" inputmode="decimal" autocomplete="off" value="" placeholder="모르면 비워두세요">
+                <span class="unit">원</span>
+              </span>
+            </label>
+          </div>
+          <p class="card-hint mt-10">퇴직하면서 새로 정산받는 연차수당은 넣지 않아요. 통상임금이 평균임금보다 크면 통상임금으로 계산돼요.</p>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title"><span class="n">3</span> 퇴직금 대상 확인</h2>
+            <span class="card-hint">자동 판정</span>
+          </div>
+          <label class="field">
+            <span class="field-label">1주 소정근로시간</span>
+            <span class="input-wrap">
+              <input id="s-weekly-hours" type="text" inputmode="decimal" autocomplete="off" value="40">
+              <span class="unit">시간</span>
+            </span>
+          </label>
+
+          <div class="judge ok" id="s-judge" role="status" aria-live="polite">
+            <span class="j-title" id="s-judge-title">퇴직금 받을 수 있어요</span>
+            <span id="s-judge-body"></span>
+          </div>
+
+          <p class="card-hint mt-10">1년 이상 + 4주 평균 주 15시간 이상이면 대상이에요. 5인 미만 사업장도 똑같아요.</p>
+        </section>
+
+      </div><!-- /col-inputs -->
+
+      <div class="col-result">
+
+        <section class="card result">
+          <div class="result-top">
+            <p class="result-eyebrow">세전 예상 퇴직금</p>
+            <span class="badge-soft" id="s-badge">퇴직금 대상</span>
+          </div>
+          <p class="big"><span id="s-big">0</span><span class="big-unit">원</span></p>
+          <p class="result-exact" id="s-exact">0원</p>
+          <p class="result-formula" id="s-formula"></p>
+          <button type="button" class="btn btn-copy" data-copy="sev">
+            <span aria-hidden="true">📋</span> 결과 복사하기
+          </button>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title">계산 내역</h2>
+            <span class="card-hint">세전 기준</span>
+          </div>
+
+          <ul class="kv">
+            <li>
+              <span class="kv-name">계속근로일수
+                <span class="kv-desc" id="s-desc-days"></span>
+              </span>
+              <span class="kv-val" id="s-val-days">0일</span>
+            </li>
+            <li>
+              <span class="kv-name">1일 평균임금
+                <span class="kv-desc" id="s-desc-avg"></span>
+              </span>
+              <span class="kv-val" id="s-val-avg">0원</span>
+            </li>
+            <li>
+              <span class="kv-name">3개월 임금
+                <span class="kv-desc" id="s-desc-wage3"></span>
+              </span>
+              <span class="kv-val" id="s-val-wage3">0원</span>
+            </li>
+            <li>
+              <span class="kv-name">상여금 가산
+                <span class="kv-desc" id="s-desc-bonus">연간 상여금 × 3/12</span>
+              </span>
+              <span class="kv-val" id="s-val-bonus">0원</span>
+            </li>
+            <li>
+              <span class="kv-name">연차수당 가산
+                <span class="kv-desc" id="s-desc-leave">이미 받은 연차수당 × 3/12</span>
+              </span>
+              <span class="kv-val" id="s-val-leave">0원</span>
+            </li>
+            <li class="total">
+              <span class="kv-name">퇴직금 (세전)</span>
+              <span class="kv-val" id="s-val-total">0원</span>
+            </li>
+            <li>
+              <span class="kv-name">예상 퇴직소득세
+                <span class="kv-desc" id="s-desc-tax">추정치 · IRP로 받으면 0원</span>
+              </span>
+              <span class="kv-val minus" id="s-val-tax">0원</span>
+            </li>
+            <li class="total">
+              <span class="kv-name">세후 예상</span>
+              <span class="kv-val" id="s-val-net">0원</span>
+            </li>
+          </ul>
+
+          <div class="formula-box">
+            <h3>퇴직금 계산식</h3>
+            <p class="fx-line" id="s-fx-line">—</p>
+            <p class="fx-sub" id="s-fx-sub"></p>
+          </div>
+        </section>
+
+      </div><!-- /col-result -->
+    </div>
+  </section>
+
+  <!-- ============================ 실업급여 ============================ -->
+  <section class="panel" id="panel-ben" role="tabpanel" aria-labelledby="tab-ben" data-tabpanel="ben" hidden>
+    <div class="grid">
+
+      <div class="col-inputs">
+
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title"><span class="n">1</span> 이직 정보</h2>
+            <span class="card-hint">고용보험 기준</span>
+          </div>
+
+          <label class="field">
+            <span class="field-label">이직일 (마지막 근무일 다음 날)</span>
+            <span class="input-wrap date">
+              <input id="b-leave-date" type="date" aria-label="이직일">
+            </span>
+          </label>
+
+          <p class="field-label mt-14">고용보험 가입기간</p>
+          <div class="radios">
+            <label class="radio">
+              <input type="radio" name="band" value="u1">
+              <span>
+                <span class="radio-main">1년 미만</span>
+                <span class="radio-sub" data-band-days="u1">→ 120일</span>
+              </span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="band" value="y1_3" checked>
+              <span>
+                <span class="radio-main">1~3년</span>
+                <span class="radio-sub" data-band-days="y1_3">→ 150일</span>
+              </span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="band" value="y3_5">
+              <span>
+                <span class="radio-main">3~5년</span>
+                <span class="radio-sub" data-band-days="y3_5">→ 180일</span>
+              </span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="band" value="y5_10">
+              <span>
+                <span class="radio-main">5~10년</span>
+                <span class="radio-sub" data-band-days="y5_10">→ 210일</span>
+              </span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="band" value="y10p">
+              <span>
+                <span class="radio-main">10년 이상</span>
+                <span class="radio-sub" data-band-days="y10p">→ 240일</span>
+              </span>
+            </label>
+          </div>
+
+          <p class="field-label mt-14">이직일 기준 나이</p>
+          <div class="radios">
+            <label class="radio">
+              <input type="radio" name="age50" value="no" checked>
+              <span>
+                <span class="radio-main">만 50세 미만</span>
+                <span class="radio-sub">120~240일</span>
+              </span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="age50" value="yes">
+              <span>
+                <span class="radio-main">만 50세 이상 또는 장애인</span>
+                <span class="radio-sub">같은 가입기간이라도 30일 더 (120~270일)</span>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title"><span class="n">2</span> 마지막 직장 급여</h2>
+            <span class="card-hint">세전 금액</span>
+          </div>
+
+          <div class="row-between">
+            <div class="seg" role="group" aria-label="급여 입력 방식">
+              <button type="button" class="seg-btn is-on" data-bpmode="month">월급으로</button>
+              <button type="button" class="seg-btn" data-bpmode="total">3개월 총액으로</button>
+            </div>
+            <span class="card-hint">기초일액 계산용</span>
+          </div>
+
+          <div class="mt-10" id="b-monthly-field">
+            <label class="field">
+              <span class="field-label">한 달 세전 급여</span>
+              <span class="input-wrap">
+                <input id="b-monthly" type="text" inputmode="decimal" autocomplete="off" value="3,000,000">
+                <span class="unit">원</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="mt-10" id="b-total3-field" hidden>
+            <label class="field">
+              <span class="field-label">이직 전 3개월 임금 총액</span>
+              <span class="input-wrap">
+                <input id="b-total3" type="text" inputmode="decimal" autocomplete="off" value="9,000,000">
+                <span class="unit">원</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="mt-14">
+            <label class="field">
+              <span class="field-label">1일 소정근로시간</span>
+              <span class="input-wrap">
+                <input id="b-hours" type="text" inputmode="decimal" autocomplete="off" value="8">
+                <span class="unit">시간</span>
+              </span>
+            </label>
+          </div>
+          <p class="card-hint mt-10">하루 8시간 미만 단시간 근로자면 실제 시간을 넣으세요. 8시간을 넘겨도 8시간으로 계산해요.</p>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title"><span class="n">3</span> 수급 요건</h2>
+            <span class="card-hint">고용센터 심사</span>
+          </div>
+          <div class="judge" id="b-judge" role="status" aria-live="polite">
+            <span class="j-title" id="b-judge-title">수급 요건은 따로 확인해야 해요</span>
+            <span id="b-judge-body"></span>
+          </div>
+          <p class="card-hint mt-10">금액은 참고용이고, 실제 수급자격과 일수는 고용센터가 이직확인서로 결정해요.</p>
+        </section>
+
+      </div><!-- /col-inputs -->
+
+      <div class="col-result">
+
+        <section class="card result">
+          <div class="result-top">
+            <p class="result-eyebrow">총 예상 수령액</p>
+            <span class="badge-soft off" id="b-badge">하한액 적용</span>
+          </div>
+          <p class="big"><span id="b-big">0</span><span class="big-unit">원</span></p>
+          <p class="result-exact" id="b-exact">0원</p>
+          <p class="result-formula" id="b-formula"></p>
+          <button type="button" class="btn btn-copy" data-copy="ben">
+            <span aria-hidden="true">📋</span> 결과 복사하기
+          </button>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2 class="card-title">계산 내역</h2>
+            <span class="card-hint">2026년 이직 기준</span>
+          </div>
+
+          <ul class="kv">
+            <li>
+              <span class="kv-name">기초일액
+                <span class="kv-desc" id="b-desc-base"></span>
+              </span>
+              <span class="kv-val" id="b-val-base">0원</span>
+            </li>
+            <li>
+              <span class="kv-name">평균임금의 60%</span>
+              <span class="kv-val" id="b-val-sixty">0원</span>
+            </li>
+            <li>
+              <span class="kv-name">하한액
+                <span class="kv-desc" id="b-desc-floor"></span>
+              </span>
+              <span class="kv-val" id="b-val-floor">0원</span>
+            </li>
+            <li>
+              <span class="kv-name">상한액
+                <span class="kv-desc" id="b-desc-cap"></span>
+              </span>
+              <span class="kv-val" id="b-val-cap">0원</span>
+            </li>
+            <li class="total">
+              <span class="kv-name">1일 구직급여</span>
+              <span class="kv-val" id="b-val-daily">0원</span>
+            </li>
+            <li>
+              <span class="kv-name">소정급여일수
+                <span class="kv-desc" id="b-desc-days"></span>
+              </span>
+              <span class="kv-val" id="b-val-days">0일</span>
+            </li>
+            <li class="total">
+              <span class="kv-name">총 예상 수령액
+                <span class="kv-desc" id="b-desc-total"></span>
+              </span>
+              <span class="kv-val" id="b-val-total">0원</span>
+            </li>
+            <li>
+              <span class="kv-name">한 달(30일) 환산</span>
+              <span class="kv-val" id="b-val-month">0원</span>
+            </li>
+            <li>
+              <span class="kv-name">예상 수급기간</span>
+              <span class="kv-val" id="b-val-period">—</span>
+            </li>
+          </ul>
+
+          <div class="formula-box">
+            <h3>실업급여 계산식</h3>
+            <p class="fx-line" id="b-fx-line">—</p>
+            <p class="fx-sub" id="b-fx-sub"></p>
+          </div>
+        </section>
+
+      </div><!-- /col-result -->
+    </div>
+  </section>
+
+  <!-- [애드센스] 도메인 확정 후 이 위치에 본문 중간 광고 단위 코드 삽입 -->
+  <div class="ad-slot" aria-hidden="true"></div>
+
+  <!-- ---------------- 계산 기준 ---------------- -->
+  <section class="section" id="basis">
+    <h2 class="section-title">계산 기준 안내 (2026년)</h2>
+
+    <div class="card">
+      <ul class="basis-list">
+        <li>
+          <b>퇴직금 받을 수 있는 조건</b> — ① 계속근로기간 1년 이상 ② 4주 평균 1주 소정근로시간 15시간 이상. 계약직·아르바이트·5인 미만 사업장도 똑같이 적용돼요. 둘 중 하나라도 못 채우면 법정 퇴직금은 0원이에요.
+        </li>
+        <li>
+          <b>퇴직금</b> = 1일 평균임금 × 30일 × (계속근로일수 ÷ 365)
+          <span class="f">1년에 한 달 치, 1년이 넘는 기간은 일수만큼 비례해서 더해요</span>
+        </li>
+        <li>
+          <b>1일 평균임금</b> = (퇴직 전 3개월 임금 총액 + 연간 상여금 × 3/12 + 이미 받은 연차수당 × 3/12) ÷ 3개월 총일수
+          <span class="f">3개월 총일수는 달력 기준 89~92일 · 퇴직일은 마지막 근무일 다음 날</span>
+        </li>
+        <li>
+          <b>상여금·연차수당</b>은 1년 치를 다 넣는 게 아니라 <b>3/12(3개월분)</b>만 넣어요. 퇴직하면서 처음 정산받는 연차수당은 평균임금에 들어가지 않아요.
+        </li>
+        <li>
+          <b>통상임금 보장</b> — 계산한 평균임금이 1일 통상임금보다 적으면 통상임금을 기준으로 해요(근로기준법 제2조②). 위의 "1일 통상임금" 칸에 넣으면 큰 쪽으로 계산돼요.
+        </li>
+        <li>
+          <b>퇴직소득세(추정)</b> — 근속연수공제 → 환산급여 → 환산급여공제 → 기본세율(6~45%) 순서로 계산하고 ÷12 × 근속연수로 되돌린 뒤 지방소득세 10%를 더해요. 근속 5년 이하면 근속연수 × 100만 원이 공제돼서, 퇴직금이 1,000만 원 안쪽이면 세금이 0원인 경우가 많아요.
+        </li>
+      </ul>
+      <div class="note">
+        <b>IRP로 받으면 세금이 0원</b> — 2022년부터 300만 원을 넘는 퇴직금은 IRP 계좌로 받는 게 원칙이고, IRP로 옮기면 퇴직소득세를 떼지 않아요(과세이연). 55세 이후 연금으로 나눠 받으면 일시금으로 받을 때 세액의 70%(10년 초과 60%, 20년 초과 50%)만 냅니다. 퇴직금은 퇴직일부터 14일 안에 지급해야 하고, 늦어지면 연 20% 지연이자가 붙어요.
+      </div>
+    </div>
+
+    <div class="card">
+      <ul class="basis-list">
+        <li>
+          <b>1일 구직급여</b> = 기초일액 × 60%, 단 <b>하한액과 상한액 사이</b>로 맞춰요.
+          <span class="f">기초일액 = 이직 전 3개월 임금 총액 ÷ 그 기간 일수 (89~92일)</span>
+        </li>
+        <li>
+          <b>2026년 하한액</b> = 최저임금 10,320원 × 80% × 1일 소정근로시간 → 8시간이면 <b>66,048원</b> (7시간 57,792원 · 6시간 49,536원 · 4시간 33,024원).
+        </li>
+        <li>
+          <b>2026년 상한액</b> = <b>68,100원</b>(기초일액 상한 113,500원 × 60%). 2026년 1월 1일 이후 이직자부터 적용되고, 2025년 이직자는 상한 66,000원·하한 64,192원이에요. 하한과 상한 차이가 2,052원뿐이라 웬만하면 하한액이 적용돼요.
+        </li>
+        <li>
+          <b>소정급여일수</b> — 가입기간 1년 미만 120일 · 1~3년 150일 · 3~5년 180일 · 5~10년 210일 · 10년 이상 240일. 이직일 기준 만 50세 이상이거나 장애인이면 같은 가입기간에 30일씩 더 붙어 최대 270일이에요.
+        </li>
+        <li>
+          <b>수급 요건</b> — ① 이직 전 18개월 중 피보험단위기간 180일 이상 ② 권고사직·계약만료·정리해고 같은 비자발적 이직 ③ 근로 의사·능력 ④ 재취업 활동. 수급자격 신청은 이직 다음 날부터 12개월 안에 해야 하고, 늦으면 그만큼 받을 수 없어요.
+        </li>
+        <li>
+          <b>지급 방식</b>은 지금은 주 7일 기준이에요. 정부가 주 6일 지급으로 바꾸고 상한액을 하한액의 103%로 연동하는 개편안을 발표했지만, 총액은 그대로 두고 수급기간을 늘리는 방식이라 아직 시행 전이에요. 2027년 이직자는 최저임금 10,700원 기준 하한이 68,480원이 되어 현행 상한보다 커지니 고용센터 안내를 확인하세요.
+        </li>
+      </ul>
+      <div class="note">
+        <b>반영하지 않은 것</b> — 퇴직금: 중간정산, 육아휴직·출산휴가·업무상 재해 같은 평균임금 제외기간, 성과급·식대의 임금성 판단, 회사 규정. 실업급여: 수급자격 개별 심사, 실업인정일수, 조기재취업수당, 반복수급 감액, 훈련연장급여, 개별 사업장의 이직확인서 내용. 실제 금액은 고용센터와 회사 급여 담당자 확인이 필요해요.
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------- FAQ ---------------- -->
+  <section class="section" id="faq">
+    <h2 class="section-title">퇴직금·실업급여 FAQ</h2>
+    <div class="faq">
+      <details class="qa" open>
+        <summary>1년을 하루 못 채우고 그만두면 퇴직금이 아예 없나요?</summary>
+        <div class="qa-body">
+          네, 계속근로기간이 <b>1년 미만</b>이면 법정 퇴직금은 나오지 않아요.
+          다만 수습기간이나 계약 갱신으로 끊긴 것처럼 보여도 <b>실제로 계속 일했다면 처음 입사일부터</b> 세기 때문에, 그 경우 1년을 넘길 수 있어요.
+          근로계약서·급여 이체 내역·출근 기록을 모아두면 계속근로를 다툴 수 있어요.
+          회사가 1년 미만 근로자에게 퇴직금을 주는 건 법정 의무가 아니라 회사 규정에 따릅니다.
+        </div>
+      </details>
+      <details class="qa">
+        <summary>퇴직금은 언제까지 받고, IRP로 받으면 세금이 어떻게 되나요?</summary>
+        <div class="qa-body">
+          퇴직금은 <b>퇴직일부터 14일 안</b>에 지급해야 하고, 당사자 합의로 기일을 미룰 수 있어요. 늦어지면 연 20% 지연이자가 붙습니다.
+          2022년부터는 <b>300만 원을 넘는 퇴직금을 IRP 계좌로 받는 것이 원칙</b>이에요.
+          IRP로 옮기면 퇴직소득세를 떼지 않고 미뤘다가(과세이연), 55세 이후 연금으로 나눠 받을 때 원래 세액의 70%(10년 초과 60%, 20년 초과 50%)만 냅니다.
+          이미 세금을 뗐다면 받은 날부터 60일 안에 IRP에 넣고 환급을 신청할 수 있어요.
+        </div>
+      </details>
+      <details class="qa">
+        <summary>실업급여는 월급이 적어도 하루 66,048원을 받나요?</summary>
+        <div class="qa-body">
+          하한액은 <b>최저임금의 80% × 1일 소정근로시간</b>이라 하루 8시간이면 2026년 기준 66,048원이에요.
+          퇴직 전 3개월 평균임금이 하루 <b>110,080원(월 약 335만 원)</b>보다 낮으면, 계산한 60% 금액이 이보다 적어서 하한액까지 올려 받아요.
+          반대로 평균임금이 아주 높으면 상한액 68,100원에서 잘립니다.
+          하루 4시간 일했다면 하한액도 33,024원으로 낮아져요.
+        </div>
+      </details>
+      <details class="qa">
+        <summary>자진퇴사면 실업급여를 못 받나요?</summary>
+        <div class="qa-body">
+          원칙적으로는 <b>내 사정으로 그만두면</b> 받을 수 없고, 권고사직·계약기간 만료·정리해고처럼 회사 사정으로 그만둔 경우에 받아요.
+          다만 임금 체불, 최저임금 미달, 직장 내 괴롭힘·성희롱, 통근 불가, 간병·육아, 건강 악화처럼 <b>부득이한 사유</b>가 있으면 자진퇴사도 인정될 수 있어요.
+          이직확인서에 사유가 어떻게 적히는지가 가장 중요하니, 그만두기 전에 사직서에 사유를 분명히 남겨두세요.
+        </div>
+      </details>
+      <details class="qa">
+        <summary>실업급여 받는 중에 새 직장에 들어가면 어떻게 되나요?</summary>
+        <div class="qa-body">
+          취업하면 실업급여는 <b>그날부터 지급이 중단</b>돼요. 숨기고 받으면 부정수급으로 전액 반환에 최대 5배 추가징수까지 붙습니다.
+          다만 소정급여일수의 <b>절반 이상이 남은 상태</b>에서 재취업해 12개월 이상 계속 일하면, 남은 급여의 절반을 <b>조기재취업수당</b>으로 한 번에 받을 수 있어요.
+          새 직장에 들어가기 전에 고용센터에 꼭 신고하세요.
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ---------------- 팁 ---------------- -->
+  <section class="section" id="tips">
+    <h2 class="section-title">퇴직 앞두고 챙길 4가지</h2>
+    <div class="tips">
+      <div class="tip">
+        <h4><span class="ic">1</span> 상여·연차수당까지 넣기</h4>
+        <p>상여금 400만 원이면 3/12인 100만 원이 3개월 임금에 더해져요. 이걸 빼고 계산하면 퇴직금이 100만 원 넘게 적게 나옵니다. 급여명세서로 확인하세요.</p>
+      </div>
+      <div class="tip">
+        <h4><span class="ic">2</span> IRP 계좌 미리 만들기</h4>
+        <p>300만 원 초과 퇴직금은 IRP로 받는 게 원칙이라, 계좌가 없으면 지급이 늦어질 수 있어요. 퇴직 전에 은행·증권사에서 비대면으로 만들 수 있어요.</p>
+      </div>
+      <div class="tip">
+        <h4><span class="ic">3</span> 14일 안에 못 받으면</h4>
+        <p>퇴직일부터 14일이 지나도 안 주면 연 20% 지연이자를 청구할 수 있어요. 내용증명을 보내고, 그래도 안 되면 노동청에 진정을 넣으면 됩니다.</p>
+      </div>
+      <div class="tip">
+        <h4><span class="ic">4</span> 수급 신청은 12개월 안에</h4>
+        <p>실업급여는 이직 다음 날부터 12개월이 지나면 소멸돼요. 회사를 그만두면 바로 고용24에서 수급자격을 신청하고, 첫 실업인정일을 놓치지 마세요.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <nav class="toolnav in-footer" aria-label="계산기 도구 이동">
+      <span class="tn-label">계산기</span>
+      <a href="./">월세·전세 실부담</a>
+      <a href="weekly-allowance.html">알바 주휴수당</a>
+      <a href="severance-unemployment.html" aria-current="page">퇴직금·실업급여</a>
+    </nav>
+    <div class="fnav">
+      <a href="#basis">계산 기준</a>
+      <a href="#faq">자주 묻는 질문</a>
+      <a href="privacy.html">개인정보처리방침</a>
+    </div>
+    <p>
+      이 계산기는 참고용이에요. 실제 퇴직금은 회사 급여 구성과 근로계약에 따라, 실업급여는 고용센터의 수급자격 심사에 따라 달라져요.
+      퇴직금·실업급여 상담은 고용노동부 1350이나 고용24에서 확인해 주세요.
+    </p>
+    <p style="margin-top:8px">최종 업데이트 2026-11-27 · 2026년 최저임금 10,320원 / 구직급여 상한 68,100원·하한 66,048원 기준</p>
+  </footer>
+</main>
+
+<div class="stickybar" id="stickybar">
+  <div>
+    <span class="sb-label" id="sb-label">세전 퇴직금</span>
+    <span class="sb-val"><span id="sb-val">0</span><span class="u">원</span></span>
+  </div>
+  <button type="button" data-copy="current">결과 복사</button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/severance.js"></script>
+</body>
+</html>

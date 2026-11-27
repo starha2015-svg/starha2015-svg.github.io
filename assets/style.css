@@ -1009,3 +1009,17 @@ footer p { word-break: keep-all; }
   color: #4E8279;
   word-break: keep-all;
 }
+
+/* ---------------- 날짜 입력 (퇴직금·실업급여) ---------------- */
+
+.input-wrap.date input {
+  padding: 0 12px;
+  text-align: left;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.input-wrap.date input::-webkit-calendar-picker-indicator {
+  opacity: .5;
+  cursor: pointer;
+}
+.input-wrap.date input:hover::-webkit-calendar-picker-indicator { opacity: .8; }
