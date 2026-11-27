@@ -109,9 +109,21 @@
     return 0;
   }
 
-  function severanceTax(amount, serviceDays) {
+  /* 근속연수 — 총근속월수/12, 1월 미만 일수는 1월로,
+     1년 미만 월수는 1년으로 (소득세법 제48조①, 시행규칙 별지 제40호의2서식) */
+  function serviceYears(start, end) {
+    var months = (end.getUTCFullYear() - start.getUTCFullYear()) * 12
+      + (end.getUTCMonth() - start.getUTCMonth());
+    if (end.getUTCDate() < start.getUTCDate()) months -= 1;
+    if (months < 0) months = 0;
+    var anchor = shiftMonths(start, months);
+    var totalMonths = months + (daysBetween(anchor, end) > 0 ? 1 : 0);
+    return Math.max(1, Math.ceil(totalMonths / 12));
+  }
+
+  function severanceTax(amount, years) {
     if (!(amount > 0)) return 0;
-    var years = Math.max(1, Math.ceil(serviceDays / 365));  // 1년 미만 끝수는 1년으로
+    years = Math.max(1, Math.round(years || 1));
 
     /* 근속연수공제 (2023.1.1. 이후 퇴직자) */
     var deduct;
@@ -190,7 +202,8 @@
 
     out.refAmount = Math.round(out.applied * 30 * out.serviceDays / 365);
     out.amount = out.eligible ? out.refAmount : 0;
-    out.tax = out.eligible ? severanceTax(out.amount, out.serviceDays) : 0;
+    out.taxYears = serviceYears(start, end);
+    out.tax = out.eligible ? severanceTax(out.amount, out.taxYears) : 0;
     out.net = out.amount - out.tax;
     return out;
   }
@@ -390,7 +403,7 @@
     /* 설명 문구 */
     setText('s-desc-days', numStr(r.years, 1) + '년 · ' + dotDate(toDate(state.s.startDate)) + ' ~ '
       + dotDate(new Date(toDate(state.s.endDate).getTime() - 86400000)));
-    setText('s-desc-avg', r.periodDays + '일 임금 ' + won(r.wageSum) + ' ÷ ' + r.periodDays + '일'
+    setText('s-desc-avg', '3개월(' + r.periodDays + '일) 임금 ' + won(r.wageSum)
       + (r.usedOrdinary ? ' · 통상임금이 더 커서 통상임금 적용' : ''));
     setText('s-desc-wage3', state.s.payMode === 'month' ? '월급 × 3개월' : '3개월 임금 총액 직접 입력');
     setText('s-desc-bonus', '연간 상여금 × 3/12');
@@ -479,7 +492,7 @@
     setText('b-val-month', won(r.month30) + ' (30일 기준)');
     setText('b-val-period', '약 ' + numStr(r.months, 1) + '개월 (주 7일 지급)');
 
-    setText('b-desc-base', r.periodDays + '일 임금 ' + won(r.total3) + ' ÷ ' + r.periodDays + '일'
+    setText('b-desc-base', '3개월(' + r.periodDays + '일) 임금 ' + won(r.total3)
       + (r.cappedBase ? ' · 상한 적용' : ''));
     setText('b-desc-floor', '최저임금 ' + numStr(r.rate.minWage, 0) + '원 × ' + numStr(r.hours, 1) + '시간 × 80%');
     setText('b-desc-cap', numStr(r.rate.year, 0) + '년 이직자 기준');
