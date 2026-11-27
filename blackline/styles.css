@@ -565,6 +565,7 @@ input.invalid,select.invalid,textarea.invalid{border-color:#c4603f;background:#1
   }
   .nav a::after{display:none}
   .nav-toggle{display:block}
+  .header-actions{margin-left:auto}
   .header-call span{display:none}
   .header-call{padding:11px}
   .section{padding:92px 0;scroll-margin-top:70px}
@@ -612,6 +613,8 @@ input.invalid,select.invalid,textarea.invalid{border-color:#c4603f;background:#1
   .pc-only{display:none}
   .hero{padding:104px 0 200px;min-height:auto}
   .hero-inner{padding:0 20px}
+  .eyebrow{font-size:9.5px;letter-spacing:.2em;gap:10px;margin-bottom:20px}
+  .eyebrow::before{width:16px}
   .hero-title .line-2{letter-spacing:.04em}
   .hero-media img{object-position:68% 55%}
   .hero-sub{font-size:14.5px;margin-top:24px;line-height:1.9}
