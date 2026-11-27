@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<title>preview</title>
+<style>
+  html,body{margin:0;background:#1b1d20;}
+  #f{display:block;border:0;background:#0a0b0c;}
+</style>
+</head>
+<body>
+<iframe id="f" src="../blackline/" title="preview"></iframe>
+<script>
+  (function () {
+    var p = new URLSearchParams(location.search);
+    var w = parseInt(p.get('w') || '375', 10);
+    var h = parseInt(p.get('h') || '812', 10);
+    var y = parseInt(p.get('y') || '0', 10);
+    var f = document.getElementById('f');
+    f.style.width = w + 'px';
+    f.style.height = h + 'px';
+    function go() { try { f.contentWindow.scrollTo(0, y); } catch (e) {} }
+    f.addEventListener('load', function () { go(); setTimeout(go, 400); setTimeout(go, 1500); });
+  })();
+</script>
+</body>
+</html>
