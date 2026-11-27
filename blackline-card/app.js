@@ -292,7 +292,7 @@
     if (rect.width < 8) return;
 
     var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-    var w = Math.round(rect.width * dpr);
+    var w = Math.max(Math.round(rect.width * dpr), 1400);
     var h = Math.round(w * CARD.h / CARD.w);
     if (cv.width !== w || cv.height !== h) {
       cv.width = w;
