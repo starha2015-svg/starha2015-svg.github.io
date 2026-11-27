@@ -670,10 +670,12 @@
   function bindDateInput(id, get, set) {
     var el = $(id);
     if (!el) return;
-    on(el, 'change', function () {
+    var apply = function () {
       set(el.value);
       get();
-    });
+    };
+    on(el, 'input', apply);
+    on(el, 'change', apply);
   }
 
   function bindInputs() {
