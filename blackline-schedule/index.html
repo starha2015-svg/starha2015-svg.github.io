@@ -136,7 +136,7 @@ var sel=today,tab="cal",editId=null;
  *    예: var API_BASE = "https://blackline-api.<계정>.workers.dev";
  *  - 로컬 테스트: 주소 뒤에 ?api=http://127.0.0.1:8787 처럼 붙이면 덮어씁니다.
  * ======================================================================= */
-var API_BASE = "";
+var API_BASE = "https://blackline-api.starha2015.workers.dev";
 var SYNC_MS = 10000; // 자동 동기화 주기(10초)
 try{var _q=new URLSearchParams(location.search).get("api");if(_q)API_BASE=_q}catch(e){}
 if(window.BLACKLINE_API)API_BASE=window.BLACKLINE_API;
