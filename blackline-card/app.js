@@ -53,7 +53,7 @@
 
   /* --------------------------------------------------- 새 로고 이미지 자산 */
 
-  var LOGO_SRC = 'assets/blackline-logo-ink.png?v=3';
+  var LOGO_SRC = 'assets/blackline-logo-ink.png?v=4';
   var logoImg = null;          // 로드 완료된 이미지
   var logoState = 'idle';      // idle | loading | ready | error
   var logoPromise = null;
@@ -252,7 +252,7 @@
     ctx.fillRect(45 * u - lw / 2, (CARD.h - bottomLen) * v, lw, bottomLen * v);
   }
 
-  // 1) 새 로고 — BLACK LINE(가로줄 없음) + — SECURITY — 로고 이미지
+  // 1) 새 로고 — BLACK LINE(가로줄 없음) + SECURITY(좌우 대시 없음) 로고 이미지
   function drawFrontImage(ctx, u, v) {
     var wmm = 66;
     var hmm = wmm * (logoImg.height / logoImg.width);
@@ -333,7 +333,7 @@
     return ctx.measureText(String(str)).width / v;
   }
 
-  // 뒷면 좌상단 — 앞면과 똑같은 새 로고 이미지(BLACK LINE + — SECURITY —)
+  // 뒷면 좌상단 — 앞면과 똑같은 새 로고 이미지(BLACK LINE + SECURITY)
   function drawBackImageLogo(ctx, u, v) {
     var wmm = 26.3;
     var hmm = wmm * (logoImg.height / logoImg.width);
@@ -587,7 +587,7 @@
     var hint = document.getElementById('logoHint');
     if (hint) {
       hint.textContent = cur === 'image'
-        ? 'BLACK LINE + — SECURITY — 로고 이미지를 앞면 가운데, 뒷면 좌상단에 똑같이 넣습니다. 회사명 글자는 쓰지 않습니다.'
+        ? 'BLACK LINE + SECURITY 로고 이미지를 앞면 가운데, 뒷면 좌상단에 똑같이 넣습니다. 회사명 글자는 쓰지 않습니다.'
         : (cur === 'textsec'
           ? 'BLACK LINE 텍스트 아래에 넓은 자간의 SECURITY 서브텍스트를 넣습니다.'
           : '원래 앞면처럼 BLACK LINE 텍스트 로고만 넣습니다.');
