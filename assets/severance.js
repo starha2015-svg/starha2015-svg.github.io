@@ -495,7 +495,7 @@
     setText('b-desc-base', '3개월(' + r.periodDays + '일) 임금 ' + won(r.total3)
       + (r.cappedBase ? ' · 상한 적용' : ''));
     setText('b-desc-floor', '최저임금 ' + numStr(r.rate.minWage, 0) + '원 × ' + numStr(r.hours, 1) + '시간 × 80%');
-    setText('b-desc-cap', numStr(r.rate.year, 0) + '년 이직자 기준');
+    setText('b-desc-cap', r.rate.year + '년 이직자 기준');
     setText('b-desc-days', r.age50 ? '50세 이상 · 장애인' : '50세 미만');
     setText('b-desc-total', '1일 ' + won(r.daily) + ' × ' + numStr(r.days, 0) + '일');
 
@@ -524,7 +524,7 @@
     body.textContent = '실업급여는 ① 이직 전 18개월 중 피보험단위기간 180일 이상 '
       + '② 권고사직·계약만료·정리해고처럼 내 사정이 아닌 이직 '
       + '③ 근로 의사와 능력이 있으면서 적극적으로 구직활동을 해야 받을 수 있어요. '
-      + '이 계산기는 ' + numStr(r.rate.year, 0) + '년 이직자 기준 금액만 계산해요.';
+      + '이 계산기는 ' + r.rate.year + '년 이직자 기준 금액만 계산해요.';
 
     if (r.band.key === 'u1') {
       box.className = 'judge warn';
@@ -541,7 +541,7 @@
 
     var label = r.applied === 'cap' ? '상한액' : (r.applied === 'floor' ? '하한액' : '60% 금액');
     fx.textContent = '기초일액 ' + won(r.base) + ' × 60% = ' + won(r.sixty)
-      + ' → ' + label + ' ' + won(r.daily) + '원';
+      + ' → ' + label + ' ' + won(r.daily);
     sub.textContent = '1일 구직급여는 기초일액의 60%인데, 하한(최저임금 80% × 1일 소정근로시간)과 '
       + '상한(' + won(r.rate.cap) + ') 사이로 맞춰요. '
       + '기초일액이 ' + won(r.base) + '이라 ' + label + '이 적용됐어요. '
