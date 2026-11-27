@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#111111">
+<title>BLACK LINE 명함 편집기</title>
+<meta name="description" content="BLACK LINE 명함을 브라우저에서 바로 수정하고 PNG·PDF로 내려받는 편집기.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-line" aria-hidden="true"></span>
+      <span class="brand-name">BLACK LINE</span>
+      <span class="brand-sub">명함 편집기</span>
+    </div>
+    <button type="button" id="resetBtn" class="btn ghost small">처음 값으로</button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <section class="stage" aria-label="명함 미리보기">
+    <div class="cards">
+      <figure class="card-fig">
+        <div class="card-frame"><canvas id="frontCanvas"></canvas></div>
+        <figcaption>앞면</figcaption>
+      </figure>
+      <figure class="card-fig">
+        <div class="card-frame"><canvas id="backCanvas"></canvas></div>
+        <figcaption>뒷면</figcaption>
+      </figure>
+    </div>
+
+    <div class="export">
+      <button type="button" class="btn primary" data-export="png-front">앞면 PNG 저장</button>
+      <button type="button" class="btn primary" data-export="png-back">뒷면 PNG 저장</button>
+      <button type="button" class="btn dark" data-export="pdf">앞·뒷면 PDF</button>
+    </div>
+    <p class="hint-line">PNG는 300dpi(1063×591px), PDF는 실제 인쇄 규격 90×50mm로 저장됩니다.</p>
+  </section>
+
+  <section class="panel" aria-label="명함 정보 편집">
+
+    <div class="group">
+      <h2 class="group-title">기본 정보</h2>
+
+      <div class="field">
+        <label for="f-company">회사명 <span class="dim">(로고 문구)</span></label>
+        <input id="f-company" data-key="company" type="text" autocomplete="off" spellcheck="false">
+      </div>
+
+      <div class="row two">
+        <div class="field">
+          <label for="f-name">한글 이름</label>
+          <input id="f-name" data-key="name" type="text" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="f-nameEn">영문 이름</label>
+          <input id="f-nameEn" data-key="nameEn" type="text" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-role">직급</label>
+        <input id="f-role" data-key="role" type="text" autocomplete="off">
+        <div class="chips" id="roleChips">
+          <button type="button" class="chip" data-role="[대표]">대표</button>
+          <button type="button" class="chip" data-role="[팀장]">팀장</button>
+          <button type="button" class="chip" data-role="[이사]">이사</button>
+          <button type="button" class="chip" data-role="[실장]">실장</button>
+          <button type="button" class="chip" data-role="[과장]">과장</button>
+          <button type="button" class="chip" data-role="">표시 안 함</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-insta">인스타그램 아이디</label>
+        <div class="input-wrap">
+          <span class="prefix">@</span>
+          <input id="f-insta" data-key="insta" type="text" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2 class="group-title">연락처</h2>
+
+      <div class="field">
+        <label for="f-phone">휴대폰</label>
+        <div class="input-wrap">
+          <input id="f-phone" class="has-btn" data-key="phone" type="tel" inputmode="tel" autocomplete="off">
+          <button type="button" class="in-btn" id="phoneFormat">010 2895 9778 형식</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-email">이메일</label>
+        <input id="f-email" data-key="email" type="email" inputmode="email" autocomplete="off" spellcheck="false">
+      </div>
+
+      <div class="field">
+        <label for="f-web">웹사이트</label>
+        <input id="f-web" data-key="web" type="text" inputmode="url" autocomplete="off" spellcheck="false">
+      </div>
+
+      <div class="field">
+        <label for="f-address">주소</label>
+        <input id="f-address" data-key="address" type="text" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="group">
+      <h2 class="group-title">QR 코드</h2>
+
+      <div class="field">
+        <label for="f-qr">QR에 담을 주소·내용</label>
+        <textarea id="f-qr" data-key="qr" rows="2" spellcheck="false"></textarea>
+        <div class="chips">
+          <button type="button" class="chip" id="qrFromWeb">웹사이트 주소 넣기</button>
+          <button type="button" class="chip" id="qrNaver">원본 링크</button>
+        </div>
+        <p class="hint" id="qrHint">내용을 바꾸면 QR 코드가 바로 새로 만들어집니다.</p>
+      </div>
+
+      <label class="switch">
+        <input type="checkbox" data-key="qrFrame" id="f-qrFrame">
+        <span>QR 테두리 표시</span>
+      </label>
+    </div>
+
+    <p class="foot-note">입력한 내용은 이 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.</p>
+  </section>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="vendor/qrcode.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
